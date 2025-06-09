@@ -1,11 +1,54 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import HowItWorks from "../components/HowItWorks.astro";
+import Footer from "../components/Footer.astro";
+import "../styles/global.css";
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="generator" content={Astro.generator} />
+        <title>QR Boxes - Organiza tu mudanza con códigos QR</title>
+        <meta
+            name="description"
+            content="Simplifica tu mudanza con QR Boxes. Crea etiquetas con códigos QR para tus cajas y accede fácilmente al inventario de cada una."
+        />
+        <!-- Agregar Open Graph para compartir en redes sociales -->
+        <meta
+            property="og:title"
+            content="QR Boxes - Organiza tu mudanza con códigos QR"
+        />
+        <meta
+            property="og:description"
+            content="Simplifica tu mudanza con QR Boxes. Crea etiquetas con códigos QR para tus cajas y accede fácilmente al inventario de cada una."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://qrboxes.com" />
+        <meta property="og:image" content="https://qrboxes.com/og-image.jpg" />
+        <!-- Estilos de Tailwind -->
+        <style is:global>
+            @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: "Inter", sans-serif;
+            }
+        </style>
+    </head>
+    <body class="bg-white">
+        <Header />
+        <main>
+            <Hero />
+            <HowItWorks />
+        </main>
+        <Footer />
+    </body>
+</html>
