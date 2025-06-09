@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" fill="none">
+  <rect width="800" height="600" fill="#F8FAFC"/>
+  
+  <!-- Background Elements -->
+  <circle cx="100" cy="500" r="180" fill="#BAE6FD" opacity="0.3"/>
+  <circle cx="700" cy="100" r="150" fill="#0EA5E9" opacity="0.2"/>
+  <circle cx="400" cy="400" r="200" fill="#7DD3FC" opacity="0.1"/>
+  
+  <!-- Box with QR Code -->
+  <rect x="280" y="150" width="240" height="240" rx="15" fill="#CBD5E1" stroke="#0284C7" stroke-width="3"/>
+  <rect x="300" y="170" width="200" height="200" fill="white"/>
+  
+  <!-- QR Code Pattern -->
+  <rect x="320" y="190" width="60" height="60" fill="#0284C7"/>
+  <rect x="330" y="200" width="40" height="40" fill="white"/>
+  <rect x="340" y="210" width="20" height="20" fill="#0284C7"/>
+  
+  <rect x="420" y="190" width="60" height="60" fill="#0284C7"/>
+  <rect x="430" y="200" width="40" height="40" fill="white"/>
+  <rect x="440" y="210" width="20" height="20" fill="#0284C7"/>
+  
+  <rect x="320" y="290" width="60" height="60" fill="#0284C7"/>
+  <rect x="330" y="300" width="40" height="40" fill="white"/>
+  <rect x="340" y="310" width="20" height="20" fill="#0284C7"/>
+  
+  <rect x="390" y="240" width="20" height="20" fill="#0284C7"/>
+  <rect x="410" y="260" width="20" height="20" fill="#0284C7"/>
+  <rect x="430" y="280" width="20" height="20" fill="#0284C7"/>
+  <rect x="410" y="300" width="20" height="20" fill="#0284C7"/>
+  <rect x="430" y="320" width="20" height="20" fill="#0284C7"/>
+  <rect x="390" y="320" width="20" height="20" fill="#0284C7"/>
+  
+  <!-- Label on Box -->
+  <rect x="320" y="390" width="160" height="30" rx="5" fill="white" stroke="#0284C7" stroke-width="2"/>
+  <text x="337" y="412" font-family="Arial" font-size="18" fill="#0284C7" font-weight="bold">MUDANZA 2024</text>
+  
+  <!-- Phone with QR Scanner -->
+  <rect x="450" y="320" width="120" height="200" rx="15" fill="#334155" stroke="#0F172A" stroke-width="3"/>
+  <rect x="460" y="340" width="100" height="160" rx="5" fill="#F8FAFC"/>
+  
+  <!-- QR Scanner Animation -->
+  <line x1="460" y1="420" x2="560" y2="420" stroke="#0EA5E9" stroke-width="3"/>
+  <circle cx="510" cy="390" r="10" fill="#0EA5E9" opacity="0.6"/>
+  <path d="M470 380 L500 410 L530 380" stroke="#0EA5E9" stroke-width="2" fill="none"/>
+  
+  <!-- Phone Button -->
+  <circle cx="510" cy="510" r="10" fill="#E2E8F0"/>
+  
+  <!-- Additional Boxes -->
+  <rect x="160" y="230" width="100" height="100" rx="10" fill="#E2E8F0" stroke="#64748B" stroke-width="2"/>
+  <rect x="540" y="180" width="80" height="80" rx="10" fill="#E2E8F0" stroke="#64748B" stroke-width="2"/>
+  <rect x="210" y="350" width="60" height="60" rx="8" fill="#E2E8F0" stroke="#64748B" stroke-width="2"/>
+</svg>

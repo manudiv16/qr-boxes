@@ -1,0 +1,81 @@
+---
+import qrCodeIcon from '../assets/qr-code-icon.svg';
+import boxIcon from '../assets/box-icon.svg';
+import scanIcon from '../assets/scan-icon.svg';
+---
+
+<section id="features" class="py-20 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="lg:text-center">
+      <h2 class="text-base text-primary-600 font-semibold tracking-wide uppercase">Características</h2>
+      <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-secondary-900 sm:text-4xl">
+        Una forma más inteligente de gestionar tu mudanza
+      </p>
+      <p class="mt-4 max-w-2xl text-xl text-secondary-500 lg:mx-auto">
+        Con QR Boxes, el proceso de mudanza se vuelve simple, organizado y sin estrés.
+      </p>
+    </div>
+
+    <div class="mt-16">
+      <div class="space-y-10 md:space-y-0 md:grid md:grid-cols-3 md:gap-8">
+        <div class="flex flex-col items-center">
+          <div class="flex items-center justify-center h-16 w-16 rounded-full bg-primary-100 text-primary-600">
+            <img src={qrCodeIcon.src} alt="QR Code" class="h-10 w-10" />
+          </div>
+          <div class="mt-5 text-center">
+            <h3 class="text-lg leading-6 font-medium text-secondary-900">Códigos QR personalizados</h3>
+            <p class="mt-2 text-base text-secondary-500">
+              Genera códigos QR únicos para cada caja que podrás imprimir y pegar fácilmente.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-center">
+          <div class="flex items-center justify-center h-16 w-16 rounded-full bg-primary-100 text-primary-600">
+            <img src={boxIcon.src} alt="Box Management" class="h-10 w-10" />
+          </div>
+          <div class="mt-5 text-center">
+            <h3 class="text-lg leading-6 font-medium text-secondary-900">Gestión de inventario</h3>
+            <p class="mt-2 text-base text-secondary-500">
+              Registra todos los objetos dentro de cada caja y organízalos por habitaciones o categorías.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-center">
+          <div class="flex items-center justify-center h-16 w-16 rounded-full bg-primary-100 text-primary-600">
+            <img src={scanIcon.src} alt="Scan QR" class="h-10 w-10" />
+          </div>
+          <div class="mt-5 text-center">
+            <h3 class="text-lg leading-6 font-medium text-secondary-900">Escaneo rápido</h3>
+            <p class="mt-2 text-base text-secondary-500">
+              Consulta el contenido de cualquier caja al instante escaneando su código QR con tu teléfono.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="mt-16 grid gap-8 lg:grid-cols-2">
+      <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
+        <h3 class="text-lg font-medium text-secondary-900">Acceso sin conexión</h3>
+        <p class="mt-2 text-secondary-600">Accede a la información de tus cajas incluso sin conexión a internet una vez que hayas descargado los datos.</p>
+      </div>
+      
+      <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
+        <h3 class="text-lg font-medium text-secondary-900">Compartir con amigos y familia</h3>
+        <p class="mt-2 text-secondary-600">Comparte el acceso a tus cajas con quienes te ayudan en la mudanza para coordinar mejor.</p>
+      </div>
+      
+      <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
+        <h3 class="text-lg font-medium text-secondary-900">Etiquetas personalizables</h3>
+        <p class="mt-2 text-secondary-600">Crea etiquetas con códigos de color, prioridades o notas especiales para una mejor organización.</p>
+      </div>
+      
+      <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
+        <h3 class="text-lg font-medium text-secondary-900">Búsqueda inteligente</h3>
+        <p class="mt-2 text-secondary-600">Encuentra rápidamente en qué caja está un objeto específico con nuestra función de búsqueda.</p>
+      </div>
+    </div>
+  </div>
+</section>
