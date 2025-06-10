@@ -47,7 +47,15 @@ import {
                         </SignInButton>
                     </SignedOut>
                     <SignedIn>
-                        <UserButton />
+                        <div class="flex items-center gap-4">
+                            <a 
+                                href="/dashboard" 
+                                class="text-primary-600 hover:text-primary-800 font-medium"
+                            >
+                                Dashboard
+                            </a>
+                            <UserButton />
+                        </div>
                     </SignedIn>
                     <button
                         type="button"

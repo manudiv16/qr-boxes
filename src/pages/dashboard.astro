@@ -1,0 +1,367 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { SignedIn, SignedOut } from '@clerk/astro/components';
+---
+
+<Layout title="Dashboard">
+  <SignedOut>
+    <div class="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div class="text-center">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+        <p class="text-gray-600 mb-4">You need to be signed in to access this page.</p>
+        <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          Go to Home
+        </a>
+      </div>
+    </div>
+  </SignedOut>
+  
+  <SignedIn>
+    <main class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl mx-auto">
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
+            
+            <!-- Create New Box Section -->
+            <div class="mb-8">
+              <h2 class="text-lg font-medium text-gray-900 mb-4">Create New QR Box</h2>
+              
+              <div class="space-y-4">
+                <div>
+                  <label for="box-name" class="block text-sm font-medium text-gray-700 mb-2">Box Name *</label>
+                  <input 
+                    type="text" 
+                    id="box-name" 
+                    maxlength="100"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter box name (e.g., Kitchen Items, Bedroom 1)"
+                  >
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Items in this box</label>
+                  
+                  <!-- Items List -->
+                  <div id="items-list" class="space-y-2 mb-3">
+                    <!-- Items will be added here dynamically -->
+                  </div>
+                  
+                  <!-- Add Item Input -->
+                  <div class="flex gap-2">
+                    <input 
+                      type="text" 
+                      id="new-item-input" 
+                      maxlength="100"
+                      class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter an item (e.g., Kitchen utensils, Plates)"
+                    >
+                    <button 
+                      type="button"
+                      id="add-item-btn" 
+                      class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium"
+                    >
+                      Add Item
+                    </button>
+                  </div>
+                  
+                  <div class="mt-2 flex items-center justify-between">
+                    <p class="text-xs text-gray-500">Add items one by one. This helps you remember what's inside when you scan the QR code.</p>
+                    <span id="item-counter" class="text-xs text-gray-600 font-medium">0 items</span>
+                  </div>
+                </div>
+                
+                <button 
+                  id="create-box-btn" 
+                  class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded"
+                >
+                  Create QR Box
+                </button>
+              </div>
+            </div>
+
+            <!-- Status Display -->
+            <div id="status" class="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+              <div class="text-blue-800">Ready to create boxes...</div>
+            </div>
+            
+            <!-- QR Code Display -->
+            <div id="qr-display" class="hidden mb-6 p-4 bg-gray-50 rounded-lg border">
+              <h3 class="text-md font-medium text-gray-900 mb-2">Generated QR Code</h3>
+              <div id="qr-code-container" class="flex justify-center">
+                <!-- QR code will be inserted here -->
+              </div>
+              <div class="mt-2 text-center">
+                <button id="download-qr-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">
+                  Download QR Code
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <button 
+                id="sign-out-btn" 
+                class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </SignedIn>
+</Layout>
+
+<script>
+  import { Clerk } from '@clerk/clerk-js';
+
+  // Initialize Clerk
+  const clerk = new Clerk(import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY);
+  
+  const statusEl = document.getElementById('status');
+  const qrDisplayEl = document.getElementById('qr-display');
+  const qrContainerEl = document.getElementById('qr-code-container');
+  const createBoxBtn = document.getElementById('create-box-btn');
+  const downloadQrBtn = document.getElementById('download-qr-btn');
+  const signOutBtn = document.getElementById('sign-out-btn');
+  const boxNameInput = document.getElementById('box-name');
+  const itemsListEl = document.getElementById('items-list');
+  const newItemInput = document.getElementById('new-item-input');
+  const addItemBtn = document.getElementById('add-item-btn');
+  const itemCounterEl = document.getElementById('item-counter');
+  
+  // Array to store items
+  let boxItems = [];
+
+  function updateStatus(message, type = 'info') {
+    if (!statusEl) return;
+    
+    const colors = {
+      info: 'bg-blue-50 border-blue-200 text-blue-800',
+      success: 'bg-green-50 border-green-200 text-green-800',
+      error: 'bg-red-50 border-red-200 text-red-800',
+      loading: 'bg-yellow-50 border-yellow-200 text-yellow-800'
+    };
+    
+    statusEl.className = `mb-4 p-4 rounded-lg border ${colors[type]}`;
+    statusEl.innerHTML = `<div>${message}</div>`;
+  }
+
+  function addItem() {
+    const itemText = newItemInput?.value.trim();
+    if (!itemText) {
+      updateStatus('❌ Please enter an item name', 'error');
+      return;
+    }
+    
+    if (boxItems.includes(itemText)) {
+      updateStatus('❌ Item already added', 'error');
+      return;
+    }
+    
+    if (boxItems.length >= 50) {
+      updateStatus('❌ Maximum 50 items allowed per box', 'error');
+      return;
+    }
+    
+    boxItems.push(itemText);
+    renderItemsList();
+    updateItemCounter();
+    
+    // Clear input
+    if (newItemInput) newItemInput.value = '';
+    
+    updateStatus(`✅ Added "${itemText}" to the box`, 'success');
+  }
+  
+  function removeItem(index) {
+    const removedItem = boxItems[index];
+    boxItems.splice(index, 1);
+    renderItemsList();
+    updateItemCounter();
+    updateStatus(`🗑️ Removed "${removedItem}" from the box`, 'info');
+  }
+  
+  function renderItemsList() {
+    if (!itemsListEl) return;
+    
+    if (boxItems.length === 0) {
+      itemsListEl.innerHTML = '<p class="text-gray-500 text-sm italic">No items added yet</p>';
+      return;
+    }
+    
+    itemsListEl.innerHTML = boxItems.map((item, index) => `
+      <div class="flex items-center justify-between bg-gray-50 hover:bg-gray-100 px-3 py-2 rounded border transition-colors">
+        <span class="text-sm text-gray-800 flex-1">${item}</span>
+        <button 
+          type="button"
+          onclick="removeItem(${index})"
+          class="text-red-600 hover:text-red-800 hover:bg-red-50 text-sm font-medium ml-2 px-2 py-1 rounded transition-colors"
+          title="Remove item"
+        >
+          ✕
+        </button>
+      </div>
+    `).join('');
+  }
+  
+  function updateItemCounter() {
+    if (!itemCounterEl) return;
+    const count = boxItems.length;
+    itemCounterEl.textContent = `${count} item${count !== 1 ? 's' : ''}`;
+    
+    // Change color based on count
+    if (count === 0) {
+      itemCounterEl.className = 'text-xs text-gray-600 font-medium';
+    } else if (count < 10) {
+      itemCounterEl.className = 'text-xs text-green-600 font-medium';
+    } else if (count < 20) {
+      itemCounterEl.className = 'text-xs text-yellow-600 font-medium';
+    } else {
+      itemCounterEl.className = 'text-xs text-orange-600 font-medium';
+    }
+  }
+
+
+
+  async function signOut() {
+    try {
+      updateStatus('🔄 Signing out...', 'loading');
+      await clerk.signOut();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error signing out:', error);
+      updateStatus(`❌ Sign out error: ${error.message}`, 'error');
+    }
+  }
+
+  async function createQRBox() {
+    try {
+      const boxName = boxNameInput?.value.trim();
+      
+      if (!boxName) {
+        updateStatus('❌ Box name is required', 'error');
+        return;
+      }
+      
+      if (boxItems.length === 0) {
+        updateStatus('❌ Please add at least one item to the box', 'error');
+        return;
+      }
+      
+      updateStatus('🔄 Loading Clerk authentication...', 'loading');
+      await clerk.load();
+      
+      updateStatus('🔄 Getting authentication token...', 'loading');
+      const token = await clerk.session?.getToken();
+      
+      if (!token) {
+        throw new Error('No authentication token available. Please sign in again.');
+      }
+      
+      updateStatus('🔄 Creating QR box...', 'loading');
+      
+      const response = await fetch('http://localhost:8083/api/boxes', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: boxName,
+          items: boxItems.join('\n')
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Backend error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      updateStatus('✅ QR Box created successfully!', 'success');
+      
+      // Display QR code
+      if (data.data && data.data.box) {
+        displayQRCode(data.data);
+        // Clear form
+        if (boxNameInput) boxNameInput.value = '';
+        boxItems = [];
+        renderItemsList();
+        updateItemCounter();
+      }
+
+    } catch (error) {
+      console.error('Error creating QR box:', error);
+      updateStatus(`❌ Error: ${error.message}`, 'error');
+      qrDisplayEl?.classList.add('hidden');
+    }
+  }
+  
+  function displayQRCode(boxData) {
+    if (!qrContainerEl || !qrDisplayEl) return;
+    
+    // Create QR code image from base64
+    if (boxData.box && boxData.box.qrCode) {
+      let itemsHtml = '';
+      if (boxData.box.items && boxData.box.items.length > 0) {
+        itemsHtml = `
+          <div class="mt-3 text-left">
+            <p class="text-xs font-medium text-gray-700 mb-1">Items in this box:</p>
+            <ul class="text-xs text-gray-600 list-disc list-inside">
+              ${boxData.box.items.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+      
+      qrContainerEl.innerHTML = `
+        <div class="text-center">
+          <img src="data:image/png;base64,${boxData.box.qrCode}" alt="QR Code" class="mx-auto mb-2">
+          <p class="text-sm font-medium text-gray-800">Box: ${boxData.box.name}</p>
+          <p class="text-xs text-gray-500">ID: ${boxData.box.id}</p>
+          ${itemsHtml}
+        </div>
+      `;
+      qrDisplayEl.classList.remove('hidden');
+      
+      // Store QR data for download
+      window.currentQRData = boxData;
+    }
+  }
+  
+  function downloadQRCode() {
+    if (!window.currentQRData || !window.currentQRData.box) return;
+    
+    const box = window.currentQRData.box;
+    const link = document.createElement('a');
+    link.href = `data:image/png;base64,${box.qrCode}`;
+    link.download = `qr-code-${box.name.replace(/[^a-zA-Z0-9]/g, '-')}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Event listeners
+  createBoxBtn?.addEventListener('click', createQRBox);
+  downloadQrBtn?.addEventListener('click', downloadQRCode);
+  signOutBtn?.addEventListener('click', signOut);
+  addItemBtn?.addEventListener('click', addItem);
+  
+  // Add item on Enter key press
+  newItemInput?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addItem();
+    }
+  });
+
+  // Make removeItem globally accessible
+  window.removeItem = removeItem;
+
+  // Initialize
+  renderItemsList();
+  updateItemCounter();
+  updateStatus('Ready! Fill in the form above to create your first QR box.', 'info');
+</script>
