@@ -1,367 +1,703 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { SignedIn, SignedOut } from '@clerk/astro/components';
+import Layout from "../layouts/Layout.astro";
+import { SignedIn, SignedOut } from "@clerk/astro/components";
+import CreateBoxForm from "../components/CreateBoxForm.astro";
+import "../styles/global.css";
 ---
 
 <Layout title="Dashboard">
-  <SignedOut>
-    <div class="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div class="text-center">
-        <h1 class="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-        <p class="text-gray-600 mb-4">You need to be signed in to access this page.</p>
-        <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-          Go to Home
-        </a>
-      </div>
-    </div>
-  </SignedOut>
-  
-  <SignedIn>
-    <main class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mx-auto">
-        <div class="bg-white shadow rounded-lg">
-          <div class="px-4 py-5 sm:p-6">
-            <h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
-            
-            <!-- Create New Box Section -->
-            <div class="mb-8">
-              <h2 class="text-lg font-medium text-gray-900 mb-4">Create New QR Box</h2>
-              
-              <div class="space-y-4">
-                <div>
-                  <label for="box-name" class="block text-sm font-medium text-gray-700 mb-2">Box Name *</label>
-                  <input 
-                    type="text" 
-                    id="box-name" 
-                    maxlength="100"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter box name (e.g., Kitchen Items, Bedroom 1)"
-                  >
-                </div>
-                
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Items in this box</label>
-                  
-                  <!-- Items List -->
-                  <div id="items-list" class="space-y-2 mb-3">
-                    <!-- Items will be added here dynamically -->
-                  </div>
-                  
-                  <!-- Add Item Input -->
-                  <div class="flex gap-2">
-                    <input 
-                      type="text" 
-                      id="new-item-input" 
-                      maxlength="100"
-                      class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter an item (e.g., Kitchen utensils, Plates)"
-                    >
-                    <button 
-                      type="button"
-                      id="add-item-btn" 
-                      class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium"
-                    >
-                      Add Item
-                    </button>
-                  </div>
-                  
-                  <div class="mt-2 flex items-center justify-between">
-                    <p class="text-xs text-gray-500">Add items one by one. This helps you remember what's inside when you scan the QR code.</p>
-                    <span id="item-counter" class="text-xs text-gray-600 font-medium">0 items</span>
-                  </div>
-                </div>
-                
-                <button 
-                  id="create-box-btn" 
-                  class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded"
+    <SignedOut>
+        <div class="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-900 mb-4">
+                    Access Denied
+                </h1>
+                <p class="text-gray-600 mb-4">
+                    You need to be signed in to access this page.
+                </p>
+                <a
+                    href="/"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 >
-                  Create QR Box
-                </button>
-              </div>
+                    Go to Home
+                </a>
             </div>
-
-            <!-- Status Display -->
-            <div id="status" class="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
-              <div class="text-blue-800">Ready to create boxes...</div>
-            </div>
-            
-            <!-- QR Code Display -->
-            <div id="qr-display" class="hidden mb-6 p-4 bg-gray-50 rounded-lg border">
-              <h3 class="text-md font-medium text-gray-900 mb-2">Generated QR Code</h3>
-              <div id="qr-code-container" class="flex justify-center">
-                <!-- QR code will be inserted here -->
-              </div>
-              <div class="mt-2 text-center">
-                <button id="download-qr-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">
-                  Download QR Code
-                </button>
-              </div>
-            </div>
-
-            <div class="space-y-4">
-              <button 
-                id="sign-out-btn" 
-                class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
         </div>
-      </div>
-    </main>
-  </SignedIn>
+    </SignedOut>
+
+    <SignedIn>
+        <main
+            class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-12"
+        >
+            <!-- Header -->
+            <div class="bg-white shadow border-b sticky top-0 z-10">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div
+                                class="flex items-center justify-center h-12 w-12 bg-gradient-to-r from-blue-600 to-blue-400 text-white rounded-xl mr-3 shadow-md"
+                            >
+                                <svg
+                                    class="w-7 h-7"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                                    ></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1
+                                    class="text-2xl font-bold text-gray-900 tracking-tight"
+                                >
+                                    QR Boxes Dashboard
+                                </h1>
+                                <p class="text-blue-600 text-sm font-medium">
+                                    Organize your moving boxes with QR codes
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button
+                                id="refresh-btn"
+                                class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition"
+                            >
+                                <svg
+                                    class="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    ></path>
+                                </svg>
+                            </button>
+                            <button
+                                id="sign-out-btn"
+                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+                            >
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Status Message -->
+                <div
+                    id="status"
+                    class="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200 shadow-sm"
+                >
+                    <div class="flex items-center">
+                        <svg
+                            class="w-5 h-5 mr-2 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            ></path>
+                        </svg>
+                        <div class="text-blue-800 font-medium">
+                            Loading your boxes...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loading" class="flex justify-center items-center py-20">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
+                    <!-- Create Box Form -->
+                    <div class="lg:col-span-1 h-fit">
+                        <CreateBoxForm />
+                    </div>
+
+                    <!-- Boxes Container -->
+                    <div class="lg:col-span-3">
+                        <div class="bg-white shadow-sm rounded-lg p-4 border border-gray-100 mb-4">
+                            <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                                <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
+                                My Boxes
+                            </h3>
+                        </div>
+                        <div id="boxes-container" class="grid gap-4 grid-cols-1 md:grid-cols-2"></div>
+                    </div>
+                </div>
+
+                <!-- Box Detail Modal -->
+                <div
+                    id="box-detail-modal"
+                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
+                >
+                    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all duration-300 ease-out scale-95 opacity-0" id="qr-modal-inner">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold" id="modal-title">
+                                Box Detail
+                            </h3>
+                            <button
+                                class="close-modal text-gray-500 hover:text-gray-700"
+                            >
+                                <svg
+                                    class="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="modal-content"></div>
+                        <div class="flex justify-end mt-6">
+                            <button
+                                class="close-modal bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QR Modal -->
+                <div
+                    id="qr-modal"
+                    class="fixed inset-0 flex items-center justify-center z-50 hidden transition-all duration-300 ease-out"
+                    style="background-color: rgba(0, 0, 0, 0.5);"
+                >
+                    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all duration-300 ease-out scale-95 opacity-0" id="qr-modal-inner">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">QR Code</h3>
+                            <button
+                                class="close-qr-modal text-gray-500 hover:text-gray-700"
+                            >
+                                <svg
+                                    class="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="qr-content" class="text-center"></div>
+                        <div class="flex justify-end mt-6 gap-2">
+                            <button
+                                id="download-qr-btn"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                            >
+                                Download QR
+                            </button>
+                            <button
+                                class="close-qr-modal bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </SignedIn>
 </Layout>
 
 <script>
-  import { Clerk } from '@clerk/clerk-js';
+    import { Clerk } from "@clerk/clerk-js";
 
-  // Initialize Clerk
-  const clerk = new Clerk(import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY);
-  
-  const statusEl = document.getElementById('status');
-  const qrDisplayEl = document.getElementById('qr-display');
-  const qrContainerEl = document.getElementById('qr-code-container');
-  const createBoxBtn = document.getElementById('create-box-btn');
-  const downloadQrBtn = document.getElementById('download-qr-btn');
-  const signOutBtn = document.getElementById('sign-out-btn');
-  const boxNameInput = document.getElementById('box-name');
-  const itemsListEl = document.getElementById('items-list');
-  const newItemInput = document.getElementById('new-item-input');
-  const addItemBtn = document.getElementById('add-item-btn');
-  const itemCounterEl = document.getElementById('item-counter');
-  
-  // Array to store items
-  let boxItems = [];
+    // Initialize Clerk
+    const clerk = new Clerk(import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY);
 
-  function updateStatus(message, type = 'info') {
-    if (!statusEl) return;
-    
-    const colors = {
-      info: 'bg-blue-50 border-blue-200 text-blue-800',
-      success: 'bg-green-50 border-green-200 text-green-800',
-      error: 'bg-red-50 border-red-200 text-red-800',
-      loading: 'bg-yellow-50 border-yellow-200 text-yellow-800'
-    };
-    
-    statusEl.className = `mb-4 p-4 rounded-lg border ${colors[type]}`;
-    statusEl.innerHTML = `<div>${message}</div>`;
-  }
+    // DOM elements
+    const statusEl = document.getElementById("status");
+    const loadingEl = document.getElementById("loading");
+    const boxesContainerEl = document.getElementById("boxes-container");
+    const boxDetailModal = document.getElementById("box-detail-modal");
+    const modalContent = document.getElementById("modal-content");
+    const modalTitle = document.getElementById("modal-title");
+    const qrModal = document.getElementById("qr-modal");
+    const qrContent = document.getElementById("qr-content");
+    const downloadQrBtn = document.getElementById("download-qr-btn");
+    const signOutBtn = document.getElementById("sign-out-btn");
+    const refreshBtn = document.getElementById("refresh-btn");
 
-  function addItem() {
-    const itemText = newItemInput?.value.trim();
-    if (!itemText) {
-      updateStatus('❌ Please enter an item name', 'error');
-      return;
+    // Close modal buttons
+    document.querySelectorAll(".close-modal").forEach((btn) => {
+        btn.addEventListener("click", () =>
+            boxDetailModal.classList.add("hidden"),
+        );
+    });
+
+    document.querySelectorAll(".close-qr-modal").forEach((btn) => {
+        btn.addEventListener("click", () => closeQRModal());
+    });
+
+    // Event Listeners
+    signOutBtn.addEventListener("click", async () => {
+        try {
+            await clerk.signOut();
+            window.location.href = "/";
+        } catch (error) {
+            console.error("Error signing out:", error);
+        }
+    });
+
+    refreshBtn.addEventListener('click', () => {
+        loadBoxes();
+    });
+
+    // Create box event
+    document.addEventListener("create-box", async (e) => {
+        try {
+            const { name, items } = e.detail;
+            showLoading(true);
+            updateStatus("Creating QR box...");
+
+            const token = await getAuthToken();
+            const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: name,
+                    items: items.join("\n"),
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Backend error: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log("Box created:", data);
+
+            // Show success and reload boxes
+            updateStatus("Box created successfully!", "success");
+            if (data.data && data.data.box && data.data.box.id) {
+                showBoxQR(data.data.box.id);
+            }
+            loadBoxes();
+        } catch (error) {
+            console.error("Error creating QR box:", error);
+            updateStatus(error.message, "error");
+        } finally {
+            showLoading(false);
+        }
+    });
+
+    // Listen for status update events from components
+    document.addEventListener("update-status", (e) => {
+        const { message, type } = e.detail;
+        updateStatus(message, type);
+    });
+
+    downloadQrBtn.addEventListener('click', () => {
+        const img = qrContent.querySelector("img");
+        if (img) {
+            const link = document.createElement("a");
+            link.href = img.src;
+            link.download = `qr-code-${new Date().getTime()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    });
+
+    // Get auth token from Clerk
+    async function getAuthToken() {
+        await clerk.load();
+        if (!clerk.user) {
+            throw new Error("User not authenticated");
+        }
+        return await clerk.session.getToken();
     }
-    
-    if (boxItems.includes(itemText)) {
-      updateStatus('❌ Item already added', 'error');
-      return;
+
+
+    // Load boxes from backend
+    async function loadBoxes() {
+        try {
+            showLoading(true);
+            updateStatus("Loading your boxes...");
+
+            const token = await getAuthToken();
+            const response = await fetch(
+                `${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/list`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to load boxes: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const boxes = data.data.boxes || [];
+
+            renderBoxes(boxes);
+            updateStatus(
+                boxes.length > 0
+                    ? `Showing ${boxes.length} box${boxes.length !== 1 ? "es" : ""}`
+                    : "No boxes found. Create a box to get started.",
+            );
+        } catch (error) {
+            console.error("Error loading boxes:", error);
+            updateStatus(`Error: ${error.message}`, "error");
+        } finally {
+            showLoading(false);
+        }
     }
-    
-    if (boxItems.length >= 50) {
-      updateStatus('❌ Maximum 50 items allowed per box', 'error');
-      return;
-    }
-    
-    boxItems.push(itemText);
-    renderItemsList();
-    updateItemCounter();
-    
-    // Clear input
-    if (newItemInput) newItemInput.value = '';
-    
-    updateStatus(`✅ Added "${itemText}" to the box`, 'success');
-  }
-  
-  function removeItem(index) {
-    const removedItem = boxItems[index];
-    boxItems.splice(index, 1);
-    renderItemsList();
-    updateItemCounter();
-    updateStatus(`🗑️ Removed "${removedItem}" from the box`, 'info');
-  }
-  
-  function renderItemsList() {
-    if (!itemsListEl) return;
-    
-    if (boxItems.length === 0) {
-      itemsListEl.innerHTML = '<p class="text-gray-500 text-sm italic">No items added yet</p>';
-      return;
-    }
-    
-    itemsListEl.innerHTML = boxItems.map((item, index) => `
-      <div class="flex items-center justify-between bg-gray-50 hover:bg-gray-100 px-3 py-2 rounded border transition-colors">
-        <span class="text-sm text-gray-800 flex-1">${item}</span>
-        <button 
-          type="button"
-          onclick="removeItem(${index})"
-          class="text-red-600 hover:text-red-800 hover:bg-red-50 text-sm font-medium ml-2 px-2 py-1 rounded transition-colors"
-          title="Remove item"
-        >
-          ✕
-        </button>
-      </div>
-    `).join('');
-  }
-  
-  function updateItemCounter() {
-    if (!itemCounterEl) return;
-    const count = boxItems.length;
-    itemCounterEl.textContent = `${count} item${count !== 1 ? 's' : ''}`;
-    
-    // Change color based on count
-    if (count === 0) {
-      itemCounterEl.className = 'text-xs text-gray-600 font-medium';
-    } else if (count < 10) {
-      itemCounterEl.className = 'text-xs text-green-600 font-medium';
-    } else if (count < 20) {
-      itemCounterEl.className = 'text-xs text-yellow-600 font-medium';
-    } else {
-      itemCounterEl.className = 'text-xs text-orange-600 font-medium';
-    }
-  }
 
+    // Render boxes in the container
+    function renderBoxes(boxes) {
+        if (!boxesContainerEl) return;
 
-
-  async function signOut() {
-    try {
-      updateStatus('🔄 Signing out...', 'loading');
-      await clerk.signOut();
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Error signing out:', error);
-      updateStatus(`❌ Sign out error: ${error.message}`, 'error');
-    }
-  }
-
-  async function createQRBox() {
-    try {
-      const boxName = boxNameInput?.value.trim();
-      
-      if (!boxName) {
-        updateStatus('❌ Box name is required', 'error');
-        return;
-      }
-      
-      if (boxItems.length === 0) {
-        updateStatus('❌ Please add at least one item to the box', 'error');
-        return;
-      }
-      
-      updateStatus('🔄 Loading Clerk authentication...', 'loading');
-      await clerk.load();
-      
-      updateStatus('🔄 Getting authentication token...', 'loading');
-      const token = await clerk.session?.getToken();
-      
-      if (!token) {
-        throw new Error('No authentication token available. Please sign in again.');
-      }
-      
-      updateStatus('🔄 Creating QR box...', 'loading');
-      
-      const response = await fetch('http://localhost:8083/api/boxes', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: boxName,
-          items: boxItems.join('\n')
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Backend error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      
-      updateStatus('✅ QR Box created successfully!', 'success');
-      
-      // Display QR code
-      if (data.data && data.data.box) {
-        displayQRCode(data.data);
-        // Clear form
-        if (boxNameInput) boxNameInput.value = '';
-        boxItems = [];
-        renderItemsList();
-        updateItemCounter();
-      }
-
-    } catch (error) {
-      console.error('Error creating QR box:', error);
-      updateStatus(`❌ Error: ${error.message}`, 'error');
-      qrDisplayEl?.classList.add('hidden');
-    }
-  }
-  
-  function displayQRCode(boxData) {
-    if (!qrContainerEl || !qrDisplayEl) return;
-    
-    // Create QR code image from base64
-    if (boxData.box && boxData.box.qrCode) {
-      let itemsHtml = '';
-      if (boxData.box.items && boxData.box.items.length > 0) {
-        itemsHtml = `
-          <div class="mt-3 text-left">
-            <p class="text-xs font-medium text-gray-700 mb-1">Items in this box:</p>
-            <ul class="text-xs text-gray-600 list-disc list-inside">
-              ${boxData.box.items.map(item => `<li>${item}</li>`).join('')}
-            </ul>
-          </div>
+        if (boxes.length === 0) {
+            boxesContainerEl.innerHTML = `
+            <div class="col-span-full text-center p-8 bg-white border border-gray-100 rounded-lg shadow-sm">
+                <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-700 mb-1">No boxes yet</h3>
+                <p class="text-gray-500 text-sm">Create a box using the form on the left</p>
+            </div>
         `;
-      }
-      
-      qrContainerEl.innerHTML = `
-        <div class="text-center">
-          <img src="data:image/png;base64,${boxData.box.qrCode}" alt="QR Code" class="mx-auto mb-2">
-          <p class="text-sm font-medium text-gray-800">Box: ${boxData.box.name}</p>
-          <p class="text-xs text-gray-500">ID: ${boxData.box.id}</p>
-          ${itemsHtml}
-        </div>
-      `;
-      qrDisplayEl.classList.remove('hidden');
-      
-      // Store QR data for download
-      window.currentQRData = boxData;
+        } else {
+            boxesContainerEl.innerHTML = boxes
+                .map(
+                    (box) => `
+                <div class="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all">
+                    <div class="p-5">
+                        <h4 class="text-lg font-bold text-gray-900 mb-2">${box.name}</h4>
+                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                            <span class="font-medium">${box.items?.length || 0} items</span>
+                            <span class="mx-2">•</span>
+                            <span class="text-xs">${new Date(box.createdAt).toLocaleDateString()}</span>
+                        </div>
+
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            ${
+                                box.items && box.items.length > 0
+                                    ? box.items
+                                          .slice(0, 3)
+                                          .map(
+                                              (item, i) => `
+                                    <span class="inline-flex items-center bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
+                                        ${item}
+                                    </span>
+                                `,
+                                          )
+                                          .join("") +
+                                      (box.items.length > 3
+                                          ? `<span class="text-gray-400 text-xs">+${box.items.length - 3} more</span>`
+                                          : "")
+                                    : '<span class="text-gray-400 text-xs">No items</span>'
+                            }
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-100 bg-gray-50 p-3 rounded-b-xl flex justify-between items-center">
+                        <button data-id="${box.id}" data-action="view" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                            View details
+                        </button>
+                        <div class="flex gap-2">
+                            <button data-id="${box.id}" data-action="qr" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md">
+                                Show QR
+                            </button>
+                            <button data-id="${box.id}" data-name="${box.name}" data-action="delete" class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `,
+                )
+                .join("");
+
+            // Add event listeners to box buttons
+            boxesContainerEl.querySelectorAll('[data-action]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const boxId = button.getAttribute('data-id');
+                    const action = button.getAttribute('data-action');
+                    
+                    if (action === 'view') {
+                        showBoxDetails(boxId);
+                    } else if (action === 'qr') {
+                        showBoxQR(boxId);
+                    } else if (action === 'delete') {
+                        const boxName = button.getAttribute('data-name');
+                        deleteBox(boxId, boxName);
+                    }
+                });
+            });
+        }
     }
-  }
-  
-  function downloadQRCode() {
-    if (!window.currentQRData || !window.currentQRData.box) return;
-    
-    const box = window.currentQRData.box;
-    const link = document.createElement('a');
-    link.href = `data:image/png;base64,${box.qrCode}`;
-    link.download = `qr-code-${box.name.replace(/[^a-zA-Z0-9]/g, '-')}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
 
-  // Event listeners
-  createBoxBtn?.addEventListener('click', createQRBox);
-  downloadQrBtn?.addEventListener('click', downloadQRCode);
-  signOutBtn?.addEventListener('click', signOut);
-  addItemBtn?.addEventListener('click', addItem);
-  
-  // Add item on Enter key press
-  newItemInput?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addItem();
+    // Delete box
+    async function deleteBox(boxId, boxName) {
+        try {
+            if (!confirm(`Are you sure you want to delete box "${boxName}"? This cannot be undone.`)) {
+                return;
+            }
+            
+            showLoading(true);
+            updateStatus(`Deleting box "${boxName}"...`);
+            
+            const token = await getAuthToken();
+            const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/delete?id=${boxId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete box: ${response.status}`);
+            }
+
+            updateStatus(`Box "${boxName}" deleted successfully`, "success");
+            loadBoxes(); // Reload boxes list
+        } catch (error) {
+            console.error("Error deleting box:", error);
+            updateStatus(`Error deleting box: ${error.message}`, "error");
+        } finally {
+            showLoading(false);
+        }
     }
-  });
 
-  // Make removeItem globally accessible
-  window.removeItem = removeItem;
+    // Show box details in modal
+    async function showBoxDetails(boxId) {
+        try {
+            showLoading(true);
+            const token = await getAuthToken();
+            const response = await fetch(
+                `http://localhost:8080/api/boxes/details?id=${boxId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                },
+            );
 
-  // Initialize
-  renderItemsList();
-  updateItemCounter();
-  updateStatus('Ready! Fill in the form above to create your first QR box.', 'info');
+            if (!response.ok) {
+                throw new Error(
+                    `Failed to load box details: ${response.status}`,
+                );
+            }
+
+            const data = await response.json();
+            const box = data.data;
+
+            if (modalTitle) modalTitle.textContent = box.name;
+
+            if (modalContent) {
+                modalContent.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="block text-gray-500">Created</span>
+                                <span class="font-medium">${new Date(box.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <div>
+                                <span class="block text-gray-500">Box ID</span>
+                                <span class="font-medium text-xs">${box.id}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="block text-gray-500 mb-2">Items in box</span>
+                            ${
+                                box.items && box.items.length > 0
+                                    ? `<ul class="bg-gray-50 rounded-lg p-3 max-h-64 overflow-y-auto divide-y divide-gray-100">
+                                    ${box.items
+                                        .map(
+                                            (item) => `
+                                        <li class="py-2">${item}</li>
+                                    `,
+                                        )
+                                        .join("")}
+                                   </ul>`
+                                    : `<div class="bg-gray-50 rounded-lg p-4 text-center text-gray-500">
+                                     No items in this box
+                                   </div>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }
+
+            boxDetailModal.classList.remove("hidden");
+        } catch (error) {
+            console.error("Error showing box details:", error);
+            updateStatus(`Error: ${error.message}`, "error");
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // Show box QR in modal
+    async function showBoxQR(boxId) {
+        try {
+            showLoading(true);
+            const token = await getAuthToken();
+            const response = await fetch(
+                `http://localhost:8080/api/boxes/details?id=${boxId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to load QR: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const box = data.data;
+
+            if (qrContent) {
+                qrContent.innerHTML = `
+                    <div class="mb-2 font-semibold">${box.name}</div>
+                    <div class="bg-white p-3 inline-block rounded-lg shadow-sm border-2 border-gray-100 mb-3">
+                        <img src="data:image/png;base64,${box.qrCode}" class="w-48 h-48" alt="QR Code" />
+                    </div>
+                    <div class="text-xs text-gray-500">Scan this QR code to access box content</div>
+                `;
+            }
+
+            showQRModal();
+        } catch (error) {
+            console.error("Error showing box QR:", error);
+            updateStatus(`Error: ${error.message}`, "error");
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // Show QR modal with animation
+    function showQRModal() {
+        const modal = document.getElementById('qr-modal');
+        const modalContent = modal.querySelector('#qr-modal-inner');
+        
+        if (modal && modalContent) {
+            modal.classList.remove('hidden');
+            
+            // Force reflow
+            modal.offsetHeight;
+            
+            // Add animation classes
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+    }
+
+    // Close QR modal with animation
+    function closeQRModal() {
+        const modal = document.getElementById('qr-modal');
+        const modalContent = modal.querySelector('#qr-modal-inner');
+        
+        if (modal && modalContent) {
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    }
+
+    // Update status message
+    function updateStatus(message, type = "info") {
+        if (!statusEl) return;
+
+        let color;
+        let icon;
+
+        switch (type) {
+            case "error":
+                color = "bg-red-50 border-red-200 text-red-800";
+                icon = `<svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>`;
+                break;
+            case "success":
+                color = "bg-green-50 border-green-200 text-green-800";
+                icon = `<svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>`;
+                break;
+            default:
+                color = "bg-blue-50 border-blue-200 text-blue-800";
+                icon = `<svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>`;
+        }
+
+        statusEl.className = `mb-6 p-4 rounded-lg ${color} shadow-sm border`;
+        statusEl.innerHTML = `
+            <div class="flex items-center">
+                ${icon}
+                <div class="font-medium">${message}</div>
+            </div>
+        `;
+    }
+
+    // Show/hide loading spinner
+    function showLoading(show) {
+        if (!loadingEl) return;
+        loadingEl.style.display = show ? "flex" : "none";
+    }
+
+    // Initialize on page load
+    document.addEventListener("DOMContentLoaded", () => {
+        // Start loading boxes
+        clerk
+            .load()
+            .then(() => {
+                if (clerk.user) {
+                    loadBoxes();
+                }
+            })
+            .catch((error) => {
+                console.error("Error initializing Clerk:", error);
+                updateStatus("Error initializing authentication", "error");
+            });
+    });
 </script>

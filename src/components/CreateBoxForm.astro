@@ -1,0 +1,257 @@
+---
+
+---
+
+<div class="bg-white shadow-sm rounded-lg p-6 border border-gray-100 w-full max-w-full overflow-hidden">
+    <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+        <svg
+            class="w-6 h-6 text-green-600 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        Create New Box
+    </h2>
+
+    <div class="space-y-4 w-full">
+        <div>
+            <label
+                for="box-name"
+                class="block text-sm font-medium text-gray-700 mb-2"
+                >Box Name *</label
+            >
+            <input
+                type="text"
+                id="box-name"
+                maxlength="100"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="e.g., Kitchen Items, Bedroom 1"
+            />
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Items in this box</label
+            >
+
+            <!-- Items List -->
+            <div
+                id="items-list"
+                class="space-y-2 mb-3 max-h-48 overflow-y-auto"
+            >
+                <!-- Items will be added here dynamically -->
+            </div>
+
+            <!-- Add Item Input -->
+            <div class="flex gap-2 w-full">
+                <input
+                    type="text"
+                    id="new-item-input"
+                    maxlength="100"
+                    class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Enter an item"
+                />
+                <button
+                    type="button"
+                    id="add-item-btn"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap flex-shrink-0"
+                >
+                    Add
+                </button>
+            </div>
+
+            <div class="mt-2 flex items-center justify-between">
+                <p class="text-xs text-gray-500">Add items one by one</p>
+                <span
+                    id="item-counter"
+                    class="text-xs text-gray-600 font-medium">0 items</span
+                >
+            </div>
+        </div>
+
+        <button
+            id="create-box-btn"
+            class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-sm hover:shadow disabled:bg-gray-400 disabled:shadow-none"
+        >
+            Create QR Box
+        </button>
+    </div>
+</div>
+
+<script is:inline>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Get elements
+        const itemsListEl = document.getElementById("items-list");
+        const newItemInput = document.getElementById("new-item-input");
+        const addItemBtn = document.getElementById("add-item-btn");
+        const itemCounterEl = document.getElementById("item-counter");
+        const createBoxBtn = document.getElementById("create-box-btn");
+        const boxNameInput = document.getElementById("box-name");
+
+        // State
+        let boxItems = [];
+
+        // Functions
+        function addItem() {
+            const itemText = newItemInput?.value.trim();
+            if (!itemText) {
+                updateStatusEvent("Please enter an item name", "error");
+                return;
+            }
+
+            if (boxItems.includes(itemText)) {
+                updateStatusEvent("Item already added", "error");
+                return;
+            }
+
+            if (boxItems.length >= 50) {
+                updateStatusEvent("Maximum 50 items allowed per box", "error");
+                return;
+            }
+
+            boxItems.push(itemText);
+            renderItemsList();
+            updateItemCounter();
+
+            // Clear input
+            if (newItemInput) newItemInput.value = "";
+
+            updateStatusEvent(`Added "${itemText}" to the box`, "success");
+        }
+
+        function removeItem(index) {
+            const removedItem = boxItems[index];
+            boxItems.splice(index, 1);
+            renderItemsList();
+            updateItemCounter();
+            updateStatusEvent(`Removed "${removedItem}" from the box`, "info");
+        }
+
+        function renderItemsList() {
+            if (!itemsListEl) return;
+
+            if (boxItems.length === 0) {
+                itemsListEl.innerHTML =
+                    '<p class="text-gray-500 text-sm italic py-2">No items added yet</p>';
+                return;
+            }
+
+            itemsListEl.innerHTML = boxItems
+                .map(
+                    (item, index) => `
+          <div class="flex items-center justify-between bg-gray-50 hover:bg-gray-100 px-3 py-2 rounded-lg border transition-colors">
+            <span class="text-sm text-gray-800 flex-1">${item}</span>
+            <button
+              type="button"
+              data-index="${index}"
+              class="remove-item-btn text-red-600 hover:text-red-800 hover:bg-red-50 text-sm font-medium ml-2 px-2 py-1 rounded transition-colors"
+              title="Remove item"
+            >
+              ✕
+            </button>
+          </div>
+        `,
+                )
+                .join("");
+
+            // Re-attach event listeners to remove buttons
+            document.querySelectorAll(".remove-item-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const index = parseInt(btn.dataset.index);
+                    removeItem(index);
+                });
+            });
+        }
+
+        function updateItemCounter() {
+            if (!itemCounterEl) return;
+            const count = boxItems.length;
+            itemCounterEl.textContent = `${count} item${count !== 1 ? "s" : ""}`;
+
+            // Change color based on count
+            if (count === 0) {
+                itemCounterEl.className = "text-xs text-gray-600 font-medium";
+            } else if (count < 10) {
+                itemCounterEl.className = "text-xs text-green-600 font-medium";
+            } else if (count < 20) {
+                itemCounterEl.className = "text-xs text-yellow-600 font-medium";
+            } else {
+                itemCounterEl.className = "text-xs text-orange-600 font-medium";
+            }
+        }
+
+        function createQRBox() {
+            try {
+                const boxName = boxNameInput?.value;
+
+                if (!boxName) {
+                    updateStatusEvent("Box name is required", "error");
+                    return;
+                }
+
+                if (boxItems.length === 0) {
+                    updateStatusEvent(
+                        "Please add at least one item to the box",
+                        "error",
+                    );
+                    return;
+                }
+
+                updateStatusEvent("Creating QR box...", "loading");
+                if (createBoxBtn) createBoxBtn.disabled = true;
+
+                // Send create box event
+                const event = new CustomEvent("create-box", {
+                    detail: {
+                        name: boxName,
+                        items: boxItems,
+                    },
+                });
+                document.dispatchEvent(event);
+
+                // Clear form
+                if (boxNameInput) boxNameInput.value = "";
+                boxItems = [];
+                renderItemsList();
+                updateItemCounter();
+            } catch (error) {
+                console.error("Error creating QR box:", error);
+                updateStatusEvent("Error creating box", "error");
+            } finally {
+                if (createBoxBtn) createBoxBtn.disabled = false;
+            }
+        }
+
+        function updateStatusEvent(message, type = "info") {
+            const event = new CustomEvent("update-status", {
+                detail: { message, type },
+            });
+            document.dispatchEvent(event);
+        }
+
+        // Event listeners
+        addItemBtn?.addEventListener("click", addItem);
+        createBoxBtn?.addEventListener("click", createQRBox);
+
+        // Add item on Enter key press
+        newItemInput?.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                addItem();
+            }
+        });
+
+        // Make removeItem function available globally
+        window.removeBoxItem = removeItem;
+
+        // Initialize
+        renderItemsList();
+        updateItemCounter();
+    });
+</script>

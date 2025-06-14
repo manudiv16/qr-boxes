@@ -1,3 +1,7 @@
 ignoredBuiltDependencies:
   - '@clerk/shared'
   - '@tailwindcss/oxide'
+  - browser-tabs-lock
+  - core-js
+  - esbuild
+  - sharp
