@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@astrojs/node": "^9.2.2",
+    "@astrojs/vercel": "^8.1.5",
     "@clerk/astro": "^2.9.0",
     "@clerk/clerk-js": "^5.68.0",
     "@tailwindcss/vite": "^4.1.8",

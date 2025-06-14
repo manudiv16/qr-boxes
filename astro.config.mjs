@@ -4,6 +4,8 @@ import node from "@astrojs/node";
 import clerk from "@clerk/astro";
 import tailwindcss from "@tailwindcss/vite";
 
+import vercel from "@astrojs/vercel";
+
 // Default environment variables for builhttps://astro.build/config
 export default defineConfig({
   integrations: [
@@ -14,7 +16,7 @@ export default defineConfig({
       signUpUrl: "/",
     }),
   ],
-  adapter: node({ mode: "standalone" }),
+  adapter: vercel(),
   output: "server",
   vite: {
     plugins: [tailwindcss()],
