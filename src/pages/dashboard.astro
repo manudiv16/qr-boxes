@@ -503,7 +503,7 @@ import "../styles/global.css";
             showLoading(true);
             const token = await getAuthToken();
             const response = await fetch(
-                `http://localhost:8080/api/boxes/details?id=${boxId}`,
+                `${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/details?id=${boxId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -574,7 +574,7 @@ import "../styles/global.css";
             showLoading(true);
             const token = await getAuthToken();
             const response = await fetch(
-                `http://localhost:8080/api/boxes/details?id=${boxId}`,
+                `${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/qr?id=${boxId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
