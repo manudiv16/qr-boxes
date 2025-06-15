@@ -1,128 +1,338 @@
 ---
-
+import { SignedIn, SignedOut, SignInButton } from "@clerk/astro/components";
 ---
 
-<section id="how-it-works" class="py-20 bg-secondary-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center">
-            <h2
-                class="text-base text-primary-600 font-semibold tracking-wide uppercase"
-            >
-                Cómo funciona
+<section id="how-it-works" class="py-24 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+    <!-- Background decorations -->
+    <div class="absolute top-0 left-0 w-full h-full">
+        <div class="absolute top-20 right-10 w-40 h-40 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
+        <div class="absolute bottom-20 left-10 w-32 h-32 bg-indigo-100 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-20">
+            <div class="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 text-blue-800 text-sm font-medium mb-6">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7"></path>
+                </svg>
+                Proceso simple y rápido
+            </div>
+            <h2 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-6">
+                ¿Cómo funciona 
+                <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">QR Boxes</span>?
             </h2>
-            <p
-                class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-secondary-900 sm:text-4xl"
-            >
-                ¡Organiza tu mudanza en 4 simples pasos!
-            </p>
-            <p class="mt-4 max-w-2xl text-xl text-secondary-500 mx-auto">
-                Nuestro proceso intuitivo hace que gestionar tus cajas de
-                mudanza sea más fácil que nunca.
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Organiza tu mudanza en 4 pasos simples. Desde crear cajas hasta encontrar tus objetos, 
+                todo el proceso está diseñado para ser intuitivo y eficiente.
             </p>
         </div>
 
-        <div class="mt-16">
-            <div class="relative">
-                <!-- Línea de conexión -->
-                <div
-                    class="hidden md:block absolute top-8 left-0 w-full h-1 bg-primary-200"
-                    aria-hidden="true"
-                >
+        <!-- Steps -->
+        <div class="grid gap-12 lg:gap-16">
+            <!-- Step 1 -->
+            <div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+                <div class="order-2 lg:order-1">
+                    <div class="flex items-center mb-6">
+                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-bold text-lg mr-4 shadow-lg">
+                            1
+                        </div>
+                        <div class="h-px bg-gradient-to-r from-blue-500 to-indigo-500 flex-1 ml-4"></div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Crea y registra tus cajas</h3>
+                    <p class="text-lg text-gray-600 mb-6 leading-relaxed">
+                        Añade cajas a tu dashboard y asígnales nombres descriptivos como "Cocina", "Dormitorio" o "Oficina". 
+                        Cada caja obtiene un ID único y un código QR personalizado.
+                    </p>
+                    <div class="flex items-start space-x-3">
+                        <svg class="w-5 h-5 text-green-500 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-gray-600">Nombres personalizables y categorización por habitaciones</span>
+                    </div>
                 </div>
-
-                <div class="relative z-10">
-                    <div class="grid gap-8 md:grid-cols-4">
-                        <!-- Paso 1 -->
-                        <div
-                            class="text-center md:flex md:flex-col md:items-center"
-                        >
-                            <div
-                                class="flex items-center justify-center h-16 w-16 rounded-full bg-primary-600 text-white text-2xl font-bold mx-auto mb-4"
-                            >
-                                1
-                            </div>
-                            <div class="mt-2">
-                                <h3
-                                    class="text-lg font-medium text-secondary-900"
-                                >
-                                    Crea tus cajas
-                                </h3>
-                                <p class="mt-2 text-secondary-600">
-                                    Añade cajas a tu cuenta y asígnales un
-                                    nombre o categoría como "Cocina", "Sala",
-                                    etc.
-                                </p>
+                <div class="order-1 lg:order-2">
+                    <div class="relative">
+                        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Caja #001</h4>
+                                        <p class="text-sm text-gray-600">Cocina - Utensilios</p>
+                                    </div>
+                                    <div class="w-8 h-8 bg-blue-500 rounded"></div>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">Caja #002</h4>
+                                        <p class="text-sm text-gray-600">Sala - Decoración</p>
+                                    </div>
+                                    <div class="w-8 h-8 bg-green-500 rounded"></div>
+                                </div>
+                                <button class="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors">
+                                    + Añadir nueva caja
+                                </button>
                             </div>
                         </div>
+                        <div class="absolute -top-4 -right-4 bg-blue-500 text-white p-3 rounded-full shadow-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                        <!-- Paso 2 -->
-                        <div
-                            class="text-center md:flex md:flex-col md:items-center"
-                        >
-                            <div
-                                class="flex items-center justify-center h-16 w-16 rounded-full bg-primary-600 text-white text-2xl font-bold mx-auto mb-4"
-                            >
-                                2
-                            </div>
-                            <div class="mt-2">
-                                <h3
-                                    class="text-lg font-medium text-secondary-900"
-                                >
-                                    Genera QRs
-                                </h3>
-                                <p class="mt-2 text-secondary-600">
-                                    Imprime los códigos QR generados y pégalos
-                                    en tus cajas para identificarlas.
-                                </p>
+            <!-- Step 2 -->
+            <div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+                <div>
+                    <div class="relative">
+                        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                            <div class="text-center space-y-4">
+                                <div class="w-32 h-32 bg-black mx-auto rounded-lg grid grid-cols-8 gap-px p-2">
+                                    <!-- QR code pattern -->
+                                    <div class="bg-white rounded-sm"></div>
+                                    <div class="bg-black rounded-sm"></div>
+                                    <div class="bg-black rounded-sm"></div>
+                                    <div class="bg-white rounded-sm"></div>
+                                    <div class="bg-white rounded-sm"></div>
+                                    <div class="bg-black rounded-sm"></div>
+                                    <div class="bg-black rounded-sm"></div>
+                                    <div class="bg-white rounded-sm"></div>
+                                    <!-- Row 2 -->
+                                    <div class="bg-black rounded-sm"></div>
+                                    <div class="bg-white rounded-sm"></div>
+                                    <div class="bg-white rounded-sm"></div>
+                                    <div class="bg-black rounded-sm"></div>
+                                    <div class="bg-black rounded-sm"></div>
+                                    <div class="bg-white rounded-sm"></div>
+                                    <div class="bg-white rounded-sm"></div>
+                                    <div class="bg-black rounded-sm"></div>
+                                    <!-- Continue pattern... -->
+                                    <div class="bg-white rounded-sm"></div>
+                                    <div class="bg-black rounded-sm"></div>
+                                    <div class="bg-white rounded-sm"></div>
+                                    <div class="bg-white rounded-sm"></div>
+                                    <div class="bg-black rounded-sm"></div>
+                                    <div class="bg-black rounded-sm"></div>
+                                    <div class="bg-white rounded-sm"></div>
+                                    <div class="bg-black rounded-sm"></div>
+                                </div>
+                                <div class="space-y-2">
+                                    <h4 class="font-bold text-gray-900">Cocina - Utensilios</h4>
+                                    <p class="text-sm text-gray-600">ID: QRB-001</p>
+                                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                        Descargar QR
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                        <div class="absolute -bottom-4 -left-4 bg-green-500 text-white p-3 rounded-full shadow-lg animate-pulse">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center mb-6">
+                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-bold text-lg mr-4 shadow-lg">
+                            2
+                        </div>
+                        <div class="h-px bg-gradient-to-r from-green-500 to-blue-500 flex-1 ml-4"></div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Descarga e imprime los QRs</h3>
+                    <p class="text-lg text-gray-600 mb-6 leading-relaxed">
+                        Genera códigos QR únicos para cada caja y descárgalos en alta resolución. 
+                        Imprime las etiquetas y pégalas en tus cajas para identificarlas fácilmente.
+                    </p>
+                    <div class="space-y-3">
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-5 h-5 text-green-500 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-gray-600">Descarga en formato PDF o PNG</span>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-5 h-5 text-green-500 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-gray-600">Calidad de impresión optimizada</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                        <!-- Paso 3 -->
-                        <div
-                            class="text-center md:flex md:flex-col md:items-center"
-                        >
-                            <div
-                                class="flex items-center justify-center h-16 w-16 rounded-full bg-primary-600 text-white text-2xl font-bold mx-auto mb-4"
-                            >
-                                3
-                            </div>
-                            <div class="mt-2">
-                                <h3
-                                    class="text-lg font-medium text-secondary-900"
-                                >
-                                    Registra contenido
-                                </h3>
-                                <p class="mt-2 text-secondary-600">
-                                    Añade los objetos que vas guardando en cada
-                                    caja y categorízalos.
-                                </p>
+            <!-- Step 3 -->
+            <div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+                <div class="order-2 lg:order-1">
+                    <div class="flex items-center mb-6">
+                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-bold text-lg mr-4 shadow-lg">
+                            3
+                        </div>
+                        <div class="h-px bg-gradient-to-r from-purple-500 to-pink-500 flex-1 ml-4"></div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Registra el contenido</h3>
+                    <p class="text-lg text-gray-600 mb-6 leading-relaxed">
+                        Añade los objetos que vas guardando en cada caja. Describe cada artículo y 
+                        organízalos por categorías para encontrarlos más fácilmente después.
+                    </p>
+                    <div class="space-y-3">
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-5 h-5 text-green-500 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-gray-600">Descripciones detalladas de cada objeto</span>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-5 h-5 text-green-500 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-gray-600">Categorización automática por habitación</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="order-1 lg:order-2">
+                    <div class="relative">
+                        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                            <h4 class="font-bold text-gray-900 mb-4">Contenido de la caja</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-gray-700">Platos (8 unidades)</span>
+                                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Vajilla</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-gray-700">Cubiertos de plata</span>
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Utensilios</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-gray-700">Tazas de café (6)</span>
+                                    <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Bebidas</span>
+                                </div>
+                                <div class="p-3 border-2 border-dashed border-gray-300 rounded-lg text-center text-gray-500">
+                                    + Añadir objeto
+                                </div>
                             </div>
                         </div>
+                        <div class="absolute -top-4 -right-4 bg-purple-500 text-white p-3 rounded-full shadow-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                        <!-- Paso 4 -->
-                        <div
-                            class="text-center md:flex md:flex-col md:items-center"
-                        >
-                            <div
-                                class="flex items-center justify-center h-16 w-16 rounded-full bg-primary-600 text-white text-2xl font-bold mx-auto mb-4"
-                            >
-                                4
+            <!-- Step 4 -->
+            <div class="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+                <div>
+                    <div class="relative">
+                        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                            <div class="text-center space-y-6">
+                                <div class="relative mx-auto w-32 h-32">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full animate-ping"></div>
+                                    <div class="relative bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full w-32 h-32 flex items-center justify-center">
+                                        <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                        <div class="flex items-center">
+                                            <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="font-medium text-green-800">QR Escaneado</span>
+                                        </div>
+                                        <p class="text-sm text-green-700 mt-1">Caja encontrada: Cocina - Utensilios</p>
+                                    </div>
+                                    <p class="text-sm text-gray-600">Acceso instantáneo al inventario completo</p>
+                                </div>
                             </div>
-                            <div class="mt-2">
-                                <h3
-                                    class="text-lg font-medium text-secondary-900"
-                                >
-                                    Escanea y encuentra
-                                </h3>
-                                <p class="mt-2 text-secondary-600">
-                                    Cuando necesites algo, simplemente escanea
-                                    el QR y encuentra rápidamente tus objetos.
-                                </p>
-                            </div>
+                        </div>
+                        <div class="absolute -bottom-4 -left-4 bg-indigo-500 text-white p-3 rounded-full shadow-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center mb-6">
+                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-bold text-lg mr-4 shadow-lg">
+                            4
+                        </div>
+                        <div class="h-px bg-gradient-to-r from-indigo-500 to-purple-500 flex-1 ml-4"></div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Escanea y encuentra al instante</h3>
+                    <p class="text-lg text-gray-600 mb-6 leading-relaxed">
+                        Cuando necesites encontrar algo específico, simplemente escanea el código QR de cualquier caja 
+                        con tu móvil y accede instantáneamente a todo su contenido.
+                    </p>
+                    <div class="space-y-3">
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-5 h-5 text-green-500 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-gray-600">Escaneo desde cualquier dispositivo móvil</span>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-5 h-5 text-green-500 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="text-gray-600">Búsqueda rápida por objeto o categoría</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Call to action -->
+        <div class="mt-20 text-center">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 lg:p-12 shadow-2xl">
+                <h3 class="text-2xl lg:text-3xl font-bold text-white mb-4">
+                    ¿Listo para organizar tu mudanza?
+                </h3>
+                <p class="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
+                    Únete a cientos de familias que ya han simplificado sus mudanzas con QR Boxes
+                </p>
+                <SignedOut>
+                    <SignInButton 
+                        mode="modal"
+                        class="inline-flex items-center px-8 py-4 bg-white hover:bg-gray-50 text-blue-600 font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                    >
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        Empezar ahora gratis
+                    </SignInButton>
+                </SignedOut>
+                <SignedIn>
+                    <a 
+                        href="/dashboard"
+                        class="inline-flex items-center px-8 py-4 bg-white hover:bg-gray-50 text-blue-600 font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                    >
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        Ir al Dashboard
+                    </a>
+                </SignedIn>
+            </div>
+        </div>
     </div>
 </section>
+
+<style>
+    @keyframes ping {
+        75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+    
+    .animate-ping {
+        animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+</style>

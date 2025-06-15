@@ -5,7 +5,7 @@ import CreateBoxForm from "../components/CreateBoxForm.astro";
 import "../styles/global.css";
 ---
 
-<Layout title="Dashboard">
+<Layout title="Dashboard" currentPage="dashboard">
     <SignedOut>
         <div class="min-h-screen bg-gray-50 flex items-center justify-center">
             <div class="text-center">
@@ -29,70 +29,7 @@ import "../styles/global.css";
         <main
             class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-12"
         >
-            <!-- Header -->
-            <div class="bg-white shadow border-b sticky top-0 z-10">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <div
-                                class="flex items-center justify-center h-12 w-12 bg-gradient-to-r from-blue-600 to-blue-400 text-white rounded-xl mr-3 shadow-md"
-                            >
-                                <svg
-                                    class="w-7 h-7"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                                    ></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h1
-                                    class="text-2xl font-bold text-gray-900 tracking-tight"
-                                >
-                                    QR Boxes Dashboard
-                                </h1>
-                                <p class="text-blue-600 text-sm font-medium">
-                                    Organize your moving boxes with QR codes
-                                </p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <button
-                                id="refresh-btn"
-                                class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition"
-                            >
-                                <svg
-                                    class="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                    ></path>
-                                </svg>
-                            </button>
-                            <button
-                                id="sign-out-btn"
-                                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
-                            >
-                                Sign Out
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <!-- Status Message -->
                 <div
                     id="status"
@@ -219,7 +156,6 @@ import "../styles/global.css";
     const qrModal = document.getElementById("qr-modal");
     const qrContent = document.getElementById("qr-content");
     const downloadQrBtn = document.getElementById("download-qr-btn");
-    const signOutBtn = document.getElementById("sign-out-btn");
     const refreshBtn = document.getElementById("refresh-btn");
     const roomFilterEl = document.getElementById("room-filter");
     const clearFilterBtn = document.getElementById("clear-filter");
@@ -234,14 +170,6 @@ import "../styles/global.css";
     });
 
     // Event Listeners
-    signOutBtn?.addEventListener("click", async () => {
-        try {
-            await clerk.signOut();
-            window.location.href = "/";
-        } catch (error) {
-            console.error("Error signing out:", error);
-        }
-    });
 
     refreshBtn?.addEventListener('click', () => {
         loadBoxes();
