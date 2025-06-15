@@ -133,12 +133,27 @@ import "../styles/global.css";
                     <!-- Boxes Container -->
                     <div class="lg:col-span-3">
                         <div class="bg-white shadow-sm rounded-lg p-4 border border-gray-100 mb-4">
-                            <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-                                <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                                </svg>
-                                My Boxes
-                            </h3>
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                    </svg>
+                                    My Boxes
+                                </h3>
+                                
+                                <!-- Filter Controls -->
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center">
+                                        <label for="room-filter" class="text-sm font-medium text-gray-700 mr-2">Filter by room:</label>
+                                        <select id="room-filter" class="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">All rooms</option>
+                                        </select>
+                                    </div>
+                                    <button id="clear-filter" class="text-sm text-gray-500 hover:text-gray-700 underline hidden">
+                                        Clear filter
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div id="boxes-container" class="grid gap-4 grid-cols-1 md:grid-cols-2"></div>
                     </div>
@@ -206,6 +221,12 @@ import "../styles/global.css";
     const downloadQrBtn = document.getElementById("download-qr-btn");
     const signOutBtn = document.getElementById("sign-out-btn");
     const refreshBtn = document.getElementById("refresh-btn");
+    const roomFilterEl = document.getElementById("room-filter");
+    const clearFilterBtn = document.getElementById("clear-filter");
+
+    // State
+    let allBoxes: any[] = []; // Store all boxes for filtering
+    let availableRooms = new Set<string>(); // Track unique rooms
 
     // Close modal buttons
     document.querySelectorAll(".close-qr-modal").forEach((btn) => {
@@ -224,6 +245,30 @@ import "../styles/global.css";
 
     refreshBtn?.addEventListener('click', () => {
         loadBoxes();
+    });
+
+    // Room filter event listeners
+    roomFilterEl?.addEventListener('change', (e) => {
+        const selectedRoom = (e.target as HTMLSelectElement).value;
+        filterBoxesByRoom(selectedRoom);
+        
+        // Show/hide clear filter button
+        if (clearFilterBtn) {
+            if (selectedRoom) {
+                clearFilterBtn.classList.remove('hidden');
+            } else {
+                clearFilterBtn.classList.add('hidden');
+            }
+        }
+    });
+
+    clearFilterBtn?.addEventListener('click', () => {
+        if (roomFilterEl) {
+            (roomFilterEl as HTMLSelectElement).value = '';
+        }
+        clearFilterBtn.classList.add('hidden');
+        renderBoxes(allBoxes);
+        updateStatusForBoxes(allBoxes);
     });
 
     // Create box event
@@ -324,12 +369,14 @@ import "../styles/global.css";
             const data = await response.json();
             const boxes = data.data.boxes || [];
 
+            // Store all boxes for filtering
+            allBoxes = boxes;
+            
+            // Update available rooms and room filter dropdown
+            updateRoomFilter(boxes);
+            
             renderBoxes(boxes);
-            updateStatus(
-                boxes.length > 0
-                    ? `Showing ${boxes.length} box${boxes.length !== 1 ? "es" : ""}`
-                    : "No boxes found. Create a box to get started.",
-            );
+            updateStatusForBoxes(boxes);
         } catch (error) {
             console.error("Error loading boxes:", error);
             updateStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, "error");
@@ -440,6 +487,69 @@ import "../styles/global.css";
                 });
             });
         }
+    }
+
+    // Update room filter dropdown with available rooms
+    function updateRoomFilter(boxes: any[]) {
+        if (!roomFilterEl) return;
+        
+        // Clear existing rooms
+        availableRooms.clear();
+        
+        // Extract unique rooms from boxes
+        boxes.forEach(box => {
+            if (box.room && box.room.trim()) {
+                availableRooms.add(box.room.trim());
+            }
+        });
+        
+        // Get current selection
+        const currentValue = (roomFilterEl as HTMLSelectElement).value;
+        
+        // Update dropdown options
+        const sortedRooms = Array.from(availableRooms).sort();
+        roomFilterEl.innerHTML = '<option value="">All rooms</option>' + 
+            sortedRooms.map(room => 
+                `<option value="${room}" ${room === currentValue ? 'selected' : ''}>${room}</option>`
+            ).join('');
+    }
+
+    // Filter boxes by selected room
+    function filterBoxesByRoom(selectedRoom: string) {
+        let filteredBoxes;
+        
+        if (!selectedRoom) {
+            filteredBoxes = allBoxes;
+        } else {
+            filteredBoxes = allBoxes.filter(box => 
+                box.room && box.room.trim() === selectedRoom
+            );
+        }
+        
+        renderBoxes(filteredBoxes);
+        updateStatusForBoxes(filteredBoxes, selectedRoom);
+    }
+
+    // Update status message for filtered boxes
+    function updateStatusForBoxes(boxes: any[], filterRoom?: string) {
+        let message;
+        
+        if (boxes.length === 0) {
+            if (filterRoom) {
+                message = `No boxes found in "${filterRoom}". Try a different room or create a new box.`;
+            } else {
+                message = "No boxes found. Create a box to get started.";
+            }
+        } else {
+            const boxText = boxes.length !== 1 ? "boxes" : "box";
+            if (filterRoom) {
+                message = `Showing ${boxes.length} ${boxText} in "${filterRoom}"`;
+            } else {
+                message = `Showing ${boxes.length} ${boxText}`;
+            }
+        }
+        
+        updateStatus(message);
     }
 
     // Delete box
