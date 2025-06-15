@@ -240,7 +240,9 @@ try {
     // Cancel adding item
     cancelAddBtn?.addEventListener('click', () => {
         addItemForm?.classList.add('hidden');
-        newItemInput.value = '';
+        if (newItemInput) {
+            (newItemInput as HTMLInputElement).value = '';
+        }
     });
 
     // Add item functionality
@@ -258,12 +260,15 @@ try {
         if (!clerk.user) {
             throw new Error("User not authenticated");
         }
+        if (!clerk.session) {
+            throw new Error("No active session");
+        }
         return await clerk.session.getToken();
     }
 
     // Add new item to the box
     async function addNewItem() {
-        const itemText = newItemInput?.value?.trim();
+        const itemText = (newItemInput as HTMLInputElement)?.value?.trim();
         
         if (!itemText) {
             showStatus('Please enter an item name', 'error');
@@ -271,8 +276,8 @@ try {
         }
 
         try {
-            addItemBtn.disabled = true;
-            addItemBtn.textContent = 'Adding...';
+            (addItemBtn as HTMLButtonElement).disabled = true;
+            if (addItemBtn) addItemBtn.textContent = 'Adding...';
             
             const token = await getAuthToken();
             const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/add-item`, {
@@ -297,7 +302,9 @@ try {
             await refreshItems();
             
             // Clear form and hide it
-            newItemInput.value = '';
+            if (newItemInput) {
+                (newItemInput as HTMLInputElement).value = '';
+            }
             addItemForm?.classList.add('hidden');
             
             showStatus('Item added successfully!', 'success');
@@ -306,8 +313,8 @@ try {
             console.error('Error adding item:', error);
             showStatus(`Error: ${error.message}`, 'error');
         } finally {
-            addItemBtn.disabled = false;
-            addItemBtn.textContent = 'Add';
+            (addItemBtn as HTMLButtonElement).disabled = false;
+            if (addItemBtn) addItemBtn.textContent = 'Add';
         }
     }
 
@@ -328,7 +335,7 @@ try {
     }
 
     // Update items display
-    function updateItemsDisplay(items) {
+    function updateItemsDisplay(items: string[]) {
         if (!itemsContainer) return;
         
         if (items.length > 0) {
@@ -401,7 +408,7 @@ try {
     }
 
     // Delete item from box
-    async function deleteItem(itemToDelete) {
+    async function deleteItem(itemToDelete: string) {
         try {
             console.log('Attempting to delete item:', itemToDelete);
             
