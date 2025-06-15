@@ -302,9 +302,6 @@ import "../styles/global.css";
 
             // Show success and reload boxes
             updateStatus("Box created successfully!", "success");
-            if (data.data && data.data.box && data.data.box.id) {
-                showBoxQR(data.data.box.id);
-            }
             loadBoxes();
         } catch (error) {
             console.error("Error creating QR box:", error);
