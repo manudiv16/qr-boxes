@@ -145,11 +145,26 @@ try {
                                 {box.items && box.items.length > 0 ? (
                                     <div class="space-y-2">
                                         {box.items.map((item, index) => (
-                                            <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                                <div class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full mr-3 text-sm font-medium">
-                                                    {index + 1}
+                                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+                                                <div class="flex items-center">
+                                                    <div class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full mr-3 text-sm font-medium">
+                                                        {index + 1}
+                                                    </div>
+                                                    <span class="text-gray-900">{item}</span>
                                                 </div>
-                                                <span class="text-gray-900">{item}</span>
+                                                
+                                                <!-- Delete button - only visible when logged in -->
+                                                <SignedIn>
+                                                    <button
+                                                        class="delete-item-btn opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-all"
+                                                        data-item="{item}"
+                                                        title="Delete this item"
+                                                    >
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                        </svg>
+                                                    </button>
+                                                </SignedIn>
                                             </div>
                                         ))}
                                     </div>
@@ -317,18 +332,40 @@ try {
         if (!itemsContainer) return;
         
         if (items.length > 0) {
+            // Check if user is signed in
+            const isSignedIn = clerk?.user ? true : false;
+            
             itemsContainer.innerHTML = `
                 <div class="space-y-2">
                     ${items.map((item, index) => `
-                        <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                            <div class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full mr-3 text-sm font-medium">
-                                ${index + 1}
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+                            <div class="flex items-center">
+                                <div class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full mr-3 text-sm font-medium">
+                                    ${index + 1}
+                                </div>
+                                <span class="text-gray-900">${item}</span>
                             </div>
-                            <span class="text-gray-900">${item}</span>
+                            
+                            ${isSignedIn ? `
+                                <button
+                                    class="delete-item-btn opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-all"
+                                    data-item="${item}"
+                                    title="Delete this item"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                            ` : ''}
                         </div>
                     `).join('')}
                 </div>
             `;
+            
+            // Add event listeners to delete buttons if user is signed in
+            if (isSignedIn) {
+                attachDeleteItemListeners();
+            }
         } else {
             itemsContainer.innerHTML = `
                 <div class="text-center py-8">
@@ -338,6 +375,55 @@ try {
                     <p class="text-gray-500">This box is empty</p>
                 </div>
             `;
+        }
+    }
+
+    // Attach event listeners to delete item buttons
+    function attachDeleteItemListeners() {
+        document.querySelectorAll('.delete-item-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const itemToDelete = button.getAttribute('data-item');
+                if (itemToDelete) {
+                    await deleteItem(itemToDelete);
+                }
+            });
+        });
+    }
+
+    // Delete item from box
+    async function deleteItem(itemToDelete) {
+        try {
+            if (!confirm(`Are you sure you want to delete "${itemToDelete}" from this box?`)) {
+                return;
+            }
+
+            showStatus('Deleting item...', 'info');
+            
+            const token = await getAuthToken();
+            const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/remove-item`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    boxId: boxId,
+                    item: itemToDelete
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete item: ${response.status}`);
+            }
+
+            // Refresh the items list
+            await refreshItems();
+            
+            showStatus(`"${itemToDelete}" deleted successfully!`, 'success');
+            
+        } catch (error) {
+            console.error('Error deleting item:', error);
+            showStatus(`Error: ${error.message}`, 'error');
         }
     }
 
@@ -387,6 +473,16 @@ try {
             statusMessage.classList.add('hidden');
         }, 3000);
     }
+
+    // Initialize delete item listeners on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        // Wait for Clerk to load before attaching listeners
+        clerk.load().then(() => {
+            if (clerk.user) {
+                attachDeleteItemListeners();
+            }
+        });
+    });
 </script>
 
 <style>
