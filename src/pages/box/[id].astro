@@ -1,5 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import { SignedIn, SignedOut } from "@clerk/astro/components";
 import "../../styles/global.css";
 
 // Get the box ID from the URL
@@ -83,36 +84,85 @@ try {
 
                         <!-- Items List -->
                         <div class="p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                                <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-                                </svg>
-                                Items in this box
-                            </h3>
-                            
-                            {box.items && box.items.length > 0 ? (
-                                <div class="space-y-2">
-                                    {box.items.map((item, index) => (
-                                        <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                            <div class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full mr-3 text-sm font-medium">
-                                                {index + 1}
-                                            </div>
-                                            <span class="text-gray-900">{item}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div class="text-center py-8">
-                                    <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                                     </svg>
-                                    <p class="text-gray-500">This box is empty</p>
+                                    Items in this box
+                                </h3>
+                                
+                                <!-- Add Item Button for Authenticated Users -->
+                                <SignedIn>
+                                    <button
+                                        id="add-item-toggle"
+                                        class="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1 rounded-lg font-medium transition-colors flex items-center"
+                                    >
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                        Add Item
+                                    </button>
+                                </SignedIn>
+                            </div>
+                            
+                            <!-- Add Item Form for Authenticated Users -->
+                            <SignedIn>
+                                <div id="add-item-form" class="hidden mb-6 p-4 bg-blue-50 rounded-lg border">
+                                    <div class="flex gap-2">
+                                        <input
+                                            type="text"
+                                            id="new-item-input"
+                                            placeholder="Enter new item..."
+                                            maxlength="100"
+                                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
+                                        <button
+                                            id="add-item-btn"
+                                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap"
+                                        >
+                                            Add
+                                        </button>
+                                        <button
+                                            id="cancel-add-btn"
+                                            class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-600 mt-2">Add a new item to this box</p>
                                 </div>
-                            )}
+                            </SignedIn>
+                            
+                            <!-- Items List Container -->
+                            <div id="items-container">
+                                {box.items && box.items.length > 0 ? (
+                                    <div class="space-y-2">
+                                        {box.items.map((item, index) => (
+                                            <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                                <div class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full mr-3 text-sm font-medium">
+                                                    {index + 1}
+                                                </div>
+                                                <span class="text-gray-900">{item}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div class="text-center py-8">
+                                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                                        </svg>
+                                        <p class="text-gray-500">This box is empty</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <!-- Footer -->
                         <div class="bg-gray-50 px-6 py-4 border-t">
+                            <!-- Status Message for Operations -->
+                            <div id="status-message" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
+                            
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center text-sm text-gray-600">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,6 +189,199 @@ try {
         </div>
     </main>
 </Layout>
+
+<script>
+    import { Clerk } from "@clerk/clerk-js";
+
+    // Initialize Clerk
+    const clerk = new Clerk(import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY);
+    
+    // Get box ID from URL
+    const boxId = window.location.pathname.split('/').pop();
+    
+    // DOM elements
+    const addItemToggle = document.getElementById('add-item-toggle');
+    const addItemForm = document.getElementById('add-item-form');
+    const newItemInput = document.getElementById('new-item-input');
+    const addItemBtn = document.getElementById('add-item-btn');
+    const cancelAddBtn = document.getElementById('cancel-add-btn');
+    const itemsContainer = document.getElementById('items-container');
+    const statusMessage = document.getElementById('status-message');
+
+    // Show/hide add item form
+    addItemToggle?.addEventListener('click', () => {
+        addItemForm?.classList.toggle('hidden');
+        if (!addItemForm?.classList.contains('hidden')) {
+            newItemInput?.focus();
+        }
+    });
+
+    // Cancel adding item
+    cancelAddBtn?.addEventListener('click', () => {
+        addItemForm?.classList.add('hidden');
+        newItemInput.value = '';
+    });
+
+    // Add item functionality
+    addItemBtn?.addEventListener('click', addNewItem);
+    newItemInput?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addNewItem();
+        }
+    });
+
+    // Get auth token from Clerk
+    async function getAuthToken() {
+        await clerk.load();
+        if (!clerk.user) {
+            throw new Error("User not authenticated");
+        }
+        return await clerk.session.getToken();
+    }
+
+    // Add new item to the box
+    async function addNewItem() {
+        const itemText = newItemInput?.value?.trim();
+        
+        if (!itemText) {
+            showStatus('Please enter an item name', 'error');
+            return;
+        }
+
+        try {
+            addItemBtn.disabled = true;
+            addItemBtn.textContent = 'Adding...';
+            
+            const token = await getAuthToken();
+            const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/add-item`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    boxId: boxId,
+                    item: itemText
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to add item: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // Update the items display
+            await refreshItems();
+            
+            // Clear form and hide it
+            newItemInput.value = '';
+            addItemForm?.classList.add('hidden');
+            
+            showStatus('Item added successfully!', 'success');
+            
+        } catch (error) {
+            console.error('Error adding item:', error);
+            showStatus(`Error: ${error.message}`, 'error');
+        } finally {
+            addItemBtn.disabled = false;
+            addItemBtn.textContent = 'Add';
+        }
+    }
+
+    // Refresh items list
+    async function refreshItems() {
+        try {
+            const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/public/box?id=${boxId}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                const box = data.data;
+                updateItemsDisplay(box.items || []);
+                updateItemCount(box.items?.length || 0);
+            }
+        } catch (error) {
+            console.error('Error refreshing items:', error);
+        }
+    }
+
+    // Update items display
+    function updateItemsDisplay(items) {
+        if (!itemsContainer) return;
+        
+        if (items.length > 0) {
+            itemsContainer.innerHTML = `
+                <div class="space-y-2">
+                    ${items.map((item, index) => `
+                        <div class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <div class="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full mr-3 text-sm font-medium">
+                                ${index + 1}
+                            </div>
+                            <span class="text-gray-900">${item}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } else {
+            itemsContainer.innerHTML = `
+                <div class="text-center py-8">
+                    <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                    </svg>
+                    <p class="text-gray-500">This box is empty</p>
+                </div>
+            `;
+        }
+    }
+
+    // Update item count in header
+    function updateItemCount(count) {
+        const itemCountElement = document.querySelector('.bg-blue-100.text-blue-800');
+        if (itemCountElement) {
+            itemCountElement.textContent = `${count} items`;
+        }
+    }
+
+    // Show status message
+    function showStatus(message, type = 'info') {
+        if (!statusMessage) return;
+
+        let bgColor, textColor, icon;
+        
+        switch (type) {
+            case 'success':
+                bgColor = 'bg-green-50';
+                textColor = 'text-green-800';
+                icon = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>`;
+                break;
+            case 'error':
+                bgColor = 'bg-red-50';
+                textColor = 'text-red-800';
+                icon = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>`;
+                break;
+            default:
+                bgColor = 'bg-blue-50';
+                textColor = 'text-blue-800';
+                icon = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>`;
+        }
+
+        statusMessage.className = `flex items-center p-3 rounded-lg text-sm ${bgColor} ${textColor}`;
+        statusMessage.innerHTML = `${icon}${message}`;
+        statusMessage.classList.remove('hidden');
+
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            statusMessage.classList.add('hidden');
+        }, 3000);
+    }
+</script>
 
 <style>
     /* Custom animations and styles can be added here if needed */
