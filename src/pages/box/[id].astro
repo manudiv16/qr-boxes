@@ -10,8 +10,8 @@ if (!id) {
 }
 
 // Fetch box details from the backend
-let box = null;
-let error = null;
+let box: { name: string; createdAt: string; items: string[] } | null = null;
+let error: string | null = null;
 
 try {
     const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/public/box?id=${id}`);

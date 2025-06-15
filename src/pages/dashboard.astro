@@ -250,9 +250,11 @@ import "../styles/global.css";
 
     // Close modal buttons
     document.querySelectorAll(".close-modal").forEach((btn) => {
-        btn.addEventListener("click", () =>
-            boxDetailModal.classList.add("hidden"),
-        );
+        btn.addEventListener("click", () => {
+            if (boxDetailModal) {
+                boxDetailModal.classList.add("hidden");
+            }
+        });
     });
 
     document.querySelectorAll(".close-qr-modal").forEach((btn) => {
@@ -260,7 +262,7 @@ import "../styles/global.css";
     });
 
     // Event Listeners
-    signOutBtn.addEventListener("click", async () => {
+    signOutBtn?.addEventListener("click", async () => {
         try {
             await clerk.signOut();
             window.location.href = "/";
@@ -269,14 +271,14 @@ import "../styles/global.css";
         }
     });
 
-    refreshBtn.addEventListener('click', () => {
+    refreshBtn?.addEventListener('click', () => {
         loadBoxes();
     });
 
     // Create box event
     document.addEventListener("create-box", async (e) => {
         try {
-            const { name, items } = e.detail;
+            const { name, items } = (e as CustomEvent).detail;
             showLoading(true);
             updateStatus("Creating QR box...");
 
@@ -308,7 +310,7 @@ import "../styles/global.css";
             loadBoxes();
         } catch (error) {
             console.error("Error creating QR box:", error);
-            updateStatus(error.message, "error");
+            updateStatus(error instanceof Error ? error.message : "An unknown error occurred", "error");
         } finally {
             showLoading(false);
         }
@@ -316,12 +318,12 @@ import "../styles/global.css";
 
     // Listen for status update events from components
     document.addEventListener("update-status", (e) => {
-        const { message, type } = e.detail;
+        const { message, type } = (e as CustomEvent).detail;
         updateStatus(message, type);
     });
 
-    downloadQrBtn.addEventListener('click', () => {
-        const img = qrContent.querySelector("img");
+    downloadQrBtn?.addEventListener('click', () => {
+        const img = qrContent?.querySelector("img");
         if (img) {
             const link = document.createElement("a");
             link.href = img.src;
@@ -337,6 +339,9 @@ import "../styles/global.css";
         await clerk.load();
         if (!clerk.user) {
             throw new Error("User not authenticated");
+        }
+        if (!clerk.session) {
+            throw new Error("No active session");
         }
         return await clerk.session.getToken();
     }
@@ -374,14 +379,14 @@ import "../styles/global.css";
             );
         } catch (error) {
             console.error("Error loading boxes:", error);
-            updateStatus(`Error: ${error.message}`, "error");
+            updateStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, "error");
         } finally {
             showLoading(false);
         }
     }
 
     // Render boxes in the container
-    function renderBoxes(boxes) {
+    function renderBoxes(boxes: any[]) {
         if (!boxesContainerEl) return;
 
         if (boxes.length === 0) {
@@ -413,7 +418,7 @@ import "../styles/global.css";
                                     ? box.items
                                           .slice(0, 3)
                                           .map(
-                                              (item, i) => `
+                                              (item: string, i: number) => `
                                     <span class="inline-flex items-center bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
                                         ${item}
                                     </span>
@@ -451,13 +456,15 @@ import "../styles/global.css";
                     const boxId = button.getAttribute('data-id');
                     const action = button.getAttribute('data-action');
                     
-                    if (action === 'view') {
+                    if (action === 'view' && boxId) {
                         showBoxDetails(boxId);
-                    } else if (action === 'qr') {
+                    } else if (action === 'qr' && boxId) {
                         showBoxQR(boxId);
                     } else if (action === 'delete') {
                         const boxName = button.getAttribute('data-name');
-                        deleteBox(boxId, boxName);
+                        if (boxId && boxName) {
+                            deleteBox(boxId, boxName);
+                        }
                     }
                 });
             });
@@ -465,7 +472,7 @@ import "../styles/global.css";
     }
 
     // Delete box
-    async function deleteBox(boxId, boxName) {
+    async function deleteBox(boxId: string, boxName: string) {
         try {
             if (!confirm(`Are you sure you want to delete box "${boxName}"? This cannot be undone.`)) {
                 return;
@@ -491,14 +498,14 @@ import "../styles/global.css";
             loadBoxes(); // Reload boxes list
         } catch (error) {
             console.error("Error deleting box:", error);
-            updateStatus(`Error deleting box: ${error.message}`, "error");
+            updateStatus(`Error deleting box: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, "error");
         } finally {
             showLoading(false);
         }
     }
 
     // Show box details in modal
-    async function showBoxDetails(boxId) {
+    async function showBoxDetails(boxId: string) {
         try {
             showLoading(true);
             const token = await getAuthToken();
@@ -544,7 +551,7 @@ import "../styles/global.css";
                                     ? `<ul class="bg-gray-50 rounded-lg p-3 max-h-64 overflow-y-auto divide-y divide-gray-100">
                                     ${box.items
                                         .map(
-                                            (item) => `
+                                            (item: string) => `
                                         <li class="py-2">${item}</li>
                                     `,
                                         )
@@ -559,17 +566,17 @@ import "../styles/global.css";
                 `;
             }
 
-            boxDetailModal.classList.remove("hidden");
+            boxDetailModal?.classList.remove("hidden");
         } catch (error) {
             console.error("Error showing box details:", error);
-            updateStatus(`Error: ${error.message}`, "error");
+            updateStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, "error");
         } finally {
             showLoading(false);
         }
     }
 
     // Show box QR in modal
-    async function showBoxQR(boxId) {
+    async function showBoxQR(boxId: string) {
         try {
             showLoading(true);
             const token = await getAuthToken();
@@ -603,7 +610,7 @@ import "../styles/global.css";
             showQRModal();
         } catch (error) {
             console.error("Error showing box QR:", error);
-            updateStatus(`Error: ${error.message}`, "error");
+            updateStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, "error");
         } finally {
             showLoading(false);
         }
@@ -612,7 +619,7 @@ import "../styles/global.css";
     // Show QR modal with animation
     function showQRModal() {
         const modal = document.getElementById('qr-modal');
-        const modalContent = modal.querySelector('#qr-modal-inner');
+        const modalContent = modal?.querySelector('#qr-modal-inner');
         
         if (modal && modalContent) {
             modal.classList.remove('hidden');
@@ -631,7 +638,7 @@ import "../styles/global.css";
     // Close QR modal with animation
     function closeQRModal() {
         const modal = document.getElementById('qr-modal');
-        const modalContent = modal.querySelector('#qr-modal-inner');
+        const modalContent = modal?.querySelector('#qr-modal-inner');
         
         if (modal && modalContent) {
             modalContent.classList.remove('scale-100', 'opacity-100');
@@ -644,7 +651,7 @@ import "../styles/global.css";
     }
 
     // Update status message
-    function updateStatus(message, type = "info") {
+    function updateStatus(message: string, type: string = "info") {
         if (!statusEl) return;
 
         let color;
@@ -680,7 +687,7 @@ import "../styles/global.css";
     }
 
     // Show/hide loading spinner
-    function showLoading(show) {
+    function showLoading(show: boolean) {
         if (!loadingEl) return;
         loadingEl.style.display = show ? "flex" : "none";
     }
