@@ -144,48 +144,10 @@ import "../styles/global.css";
                     </div>
                 </div>
 
-                <!-- Box Detail Modal -->
-                <div
-                    id="box-detail-modal"
-                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
-                >
-                    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all duration-300 ease-out scale-95 opacity-0" id="qr-modal-inner">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-bold" id="modal-title">
-                                Box Detail
-                            </h3>
-                            <button
-                                class="close-modal text-gray-500 hover:text-gray-700"
-                            >
-                                <svg
-                                    class="w-6 h-6"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        <div id="modal-content"></div>
-                        <div class="flex justify-end mt-6">
-                            <button
-                                class="close-modal bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- QR Modal -->
                 <div
                     id="qr-modal"
-                    class="fixed inset-0 flex items-center justify-center z-50 hidden transition-all duration-300 ease-out"
+                    class="fixed inset-0 items-center justify-center z-50 hidden transition-all duration-300 ease-out"
                     style="background-color: rgba(0, 0, 0, 0.5);"
                 >
                     <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all duration-300 ease-out scale-95 opacity-0" id="qr-modal-inner">
@@ -239,9 +201,6 @@ import "../styles/global.css";
     const statusEl = document.getElementById("status");
     const loadingEl = document.getElementById("loading");
     const boxesContainerEl = document.getElementById("boxes-container");
-    const boxDetailModal = document.getElementById("box-detail-modal");
-    const modalContent = document.getElementById("modal-content");
-    const modalTitle = document.getElementById("modal-title");
     const qrModal = document.getElementById("qr-modal");
     const qrContent = document.getElementById("qr-content");
     const downloadQrBtn = document.getElementById("download-qr-btn");
@@ -249,14 +208,6 @@ import "../styles/global.css";
     const refreshBtn = document.getElementById("refresh-btn");
 
     // Close modal buttons
-    document.querySelectorAll(".close-modal").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            if (boxDetailModal) {
-                boxDetailModal.classList.add("hidden");
-            }
-        });
-    });
-
     document.querySelectorAll(".close-qr-modal").forEach((btn) => {
         btn.addEventListener("click", () => closeQRModal());
     });
@@ -463,7 +414,8 @@ import "../styles/global.css";
                     const action = button.getAttribute('data-action');
                     
                     if (action === 'view' && boxId) {
-                        showBoxDetails(boxId);
+                        // Navigate to the box details page
+                        window.location.href = `/box/${boxId}`;
                     } else if (action === 'qr' && boxId) {
                         showBoxQR(boxId);
                     } else if (action === 'delete') {
@@ -505,88 +457,6 @@ import "../styles/global.css";
         } catch (error) {
             console.error("Error deleting box:", error);
             updateStatus(`Error deleting box: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, "error");
-        } finally {
-            showLoading(false);
-        }
-    }
-
-    // Show box details in modal
-    async function showBoxDetails(boxId: string) {
-        try {
-            showLoading(true);
-            const token = await getAuthToken();
-            const response = await fetch(
-                `${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/details?id=${boxId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                },
-            );
-
-            if (!response.ok) {
-                throw new Error(
-                    `Failed to load box details: ${response.status}`,
-                );
-            }
-
-            const data = await response.json();
-            const box = data.data;
-
-            if (modalTitle) modalTitle.textContent = box.name;
-
-            if (modalContent) {
-                modalContent.innerHTML = `
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <span class="block text-gray-500">Created</span>
-                                <span class="font-medium">${new Date(box.createdAt).toLocaleDateString()}</span>
-                            </div>
-                            <div>
-                                <span class="block text-gray-500">Box ID</span>
-                                <span class="font-medium text-xs">${box.id}</span>
-                            </div>
-                        </div>
-
-                        ${
-                            box.description 
-                                ? `<div>
-                                    <span class="block text-gray-500 mb-2">Description</span>
-                                    <div class="bg-gray-50 rounded-lg p-3">
-                                        <p class="text-sm text-gray-800">${box.description}</p>
-                                    </div>
-                                </div>`
-                                : ''
-                        }
-
-                        <div>
-                            <span class="block text-gray-500 mb-2">Items in box</span>
-                            ${
-                                box.items && box.items.length > 0
-                                    ? `<ul class="bg-gray-50 rounded-lg p-3 max-h-64 overflow-y-auto divide-y divide-gray-100">
-                                    ${box.items
-                                        .map(
-                                            (item: string) => `
-                                        <li class="py-2">${item}</li>
-                                    `,
-                                        )
-                                        .join("")}
-                                   </ul>`
-                                    : `<div class="bg-gray-50 rounded-lg p-4 text-center text-gray-500">
-                                     No items in this box
-                                   </div>`
-                            }
-                        </div>
-                    </div>
-                `;
-            }
-
-            boxDetailModal?.classList.remove("hidden");
-        } catch (error) {
-            console.error("Error showing box details:", error);
-            updateStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, "error");
         } finally {
             showLoading(false);
         }
@@ -640,6 +510,7 @@ import "../styles/global.css";
         
         if (modal && modalContent) {
             modal.classList.remove('hidden');
+            modal.classList.add('flex'); // Add flex when showing
             
             // Force reflow
             modal.offsetHeight;
@@ -663,6 +534,7 @@ import "../styles/global.css";
             
             setTimeout(() => {
                 modal.classList.add('hidden');
+                modal.classList.remove('flex'); // Remove flex when hiding
             }, 300);
         }
     }
