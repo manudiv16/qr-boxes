@@ -278,7 +278,7 @@ import "../styles/global.css";
     // Create box event
     document.addEventListener("create-box", async (e) => {
         try {
-            const { name, items } = (e as CustomEvent).detail;
+            const { name, description, items } = (e as CustomEvent).detail;
             showLoading(true);
             updateStatus("Creating QR box...");
 
@@ -291,6 +291,7 @@ import "../styles/global.css";
                 },
                 body: JSON.stringify({
                     name: name,
+                    description: description || "",
                     items: items.join("\n"),
                 }),
             });
@@ -406,6 +407,11 @@ import "../styles/global.css";
                 <div class="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all">
                     <div class="p-5">
                         <h4 class="text-lg font-bold text-gray-900 mb-2">${box.name}</h4>
+                        ${
+                            box.description 
+                                ? `<p class="text-sm text-gray-600 mb-3 line-clamp-2">${box.description}</p>`
+                                : ''
+                        }
                         <div class="flex items-center text-sm text-gray-500 mb-3">
                             <span class="font-medium">${box.items?.length || 0} items</span>
                             <span class="mx-2">•</span>
@@ -543,6 +549,17 @@ import "../styles/global.css";
                                 <span class="font-medium text-xs">${box.id}</span>
                             </div>
                         </div>
+
+                        ${
+                            box.description 
+                                ? `<div>
+                                    <span class="block text-gray-500 mb-2">Description</span>
+                                    <div class="bg-gray-50 rounded-lg p-3">
+                                        <p class="text-sm text-gray-800">${box.description}</p>
+                                    </div>
+                                </div>`
+                                : ''
+                        }
 
                         <div>
                             <span class="block text-gray-500 mb-2">Items in box</span>

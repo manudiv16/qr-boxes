@@ -36,6 +36,25 @@
         </div>
 
         <div>
+            <label
+                for="box-description"
+                class="block text-sm font-medium text-gray-700 mb-2"
+                >Description</label
+            >
+            <textarea
+                id="box-description"
+                maxlength="500"
+                rows="3"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                placeholder="Optional: Add a description or notes about this box..."
+            ></textarea>
+            <div class="mt-1 flex justify-between">
+                <p class="text-xs text-gray-500">Add additional context or notes about this box</p>
+                <span id="description-counter" class="text-xs text-gray-500">0/500</span>
+            </div>
+        </div>
+
+        <div>
             <label class="block text-sm font-medium text-gray-700 mb-2"
                 >Items in this box</label
             >
@@ -93,6 +112,8 @@
         const itemCounterEl = document.getElementById("item-counter");
         const createBoxBtn = document.getElementById("create-box-btn");
         const boxNameInput = document.getElementById("box-name");
+        const boxDescriptionInput = document.getElementById("box-description");
+        const descriptionCounterEl = document.getElementById("description-counter");
 
         // State
         let boxItems = [];
@@ -189,6 +210,7 @@
         function createQRBox() {
             try {
                 const boxName = boxNameInput?.value;
+                const boxDescription = boxDescriptionInput?.value?.trim() || "";
 
                 if (!boxName) {
                     updateStatusEvent("Box name is required", "error");
@@ -210,6 +232,7 @@
                 const event = new CustomEvent("create-box", {
                     detail: {
                         name: boxName,
+                        description: boxDescription,
                         items: boxItems,
                     },
                 });
@@ -217,14 +240,31 @@
 
                 // Clear form
                 if (boxNameInput) boxNameInput.value = "";
+                if (boxDescriptionInput) boxDescriptionInput.value = "";
                 boxItems = [];
                 renderItemsList();
                 updateItemCounter();
+                updateDescriptionCounter();
             } catch (error) {
                 console.error("Error creating QR box:", error);
                 updateStatusEvent("Error creating box", "error");
             } finally {
                 if (createBoxBtn) createBoxBtn.disabled = false;
+            }
+        }
+
+        function updateDescriptionCounter() {
+            if (!descriptionCounterEl || !boxDescriptionInput) return;
+            const length = boxDescriptionInput.value.length;
+            descriptionCounterEl.textContent = `${length}/500`;
+            
+            // Change color based on length
+            if (length > 450) {
+                descriptionCounterEl.className = "text-xs text-red-600";
+            } else if (length > 400) {
+                descriptionCounterEl.className = "text-xs text-orange-600";
+            } else {
+                descriptionCounterEl.className = "text-xs text-gray-500";
             }
         }
 
@@ -247,11 +287,15 @@
             }
         });
 
+        // Description counter
+        boxDescriptionInput?.addEventListener("input", updateDescriptionCounter);
+
         // Make removeItem function available globally
         window.removeBoxItem = removeItem;
 
         // Initialize
         renderItemsList();
         updateItemCounter();
+        updateDescriptionCounter();
     });
 </script>
