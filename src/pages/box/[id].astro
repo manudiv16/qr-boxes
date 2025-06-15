@@ -156,7 +156,7 @@ try {
                                                 <!-- Delete button - only visible when logged in -->
                                                 <SignedIn>
                                                     <button
-                                                        class="delete-item-btn opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-all"
+                                                        class="delete-item-btn md:opacity-0 md:group-hover:opacity-100 opacity-100 text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-all"
                                                         data-item="{item}"
                                                         title="Delete this item"
                                                     >
@@ -365,7 +365,7 @@ try {
                 // Create delete button if user is signed in
                 if (isSignedIn) {
                     const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'delete-item-btn opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-all';
+                    deleteBtn.className = 'delete-item-btn md:opacity-0 md:group-hover:opacity-100 opacity-100 text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-all';
                     deleteBtn.title = 'Delete this item';
                     deleteBtn.innerHTML = `
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
