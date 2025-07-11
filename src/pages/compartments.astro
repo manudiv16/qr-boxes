@@ -186,6 +186,86 @@ import "../styles/global.css";
                     </div>
                 </div>
             </div>
+
+            <!-- Manage Compartment Modal -->
+            <div id="manage-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+                <div class="relative top-10 mx-auto p-5 border shadow-lg rounded-lg bg-white max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 id="manage-modal-title" class="text-lg font-semibold text-gray-900">Manage Compartment</h3>
+                        <button id="manage-modal-close" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div id="manage-modal-content">
+                        <!-- Content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invite Member Modal -->
+            <div id="invite-member-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+                <div class="relative top-20 mx-auto p-5 border shadow-lg rounded-lg bg-white max-w-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Invite Member</h3>
+                        <button id="invite-modal-close" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <form id="invite-member-form" class="space-y-4">
+                        <div>
+                            <label for="member-user-id" class="block text-sm font-medium text-gray-700 mb-1">
+                                User ID/Email
+                            </label>
+                            <input
+                                type="text"
+                                id="member-user-id"
+                                name="userId"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                placeholder="Enter user ID or email to invite"
+                            />
+                        </div>
+                        
+                        <div>
+                            <label for="member-role" class="block text-sm font-medium text-gray-700 mb-1">
+                                Role
+                            </label>
+                            <select
+                                id="member-role"
+                                name="role"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                            >
+                                <option value="member">Member</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button
+                                type="button"
+                                id="invite-cancel-btn"
+                                class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                id="invite-submit-btn"
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                            >
+                                Send Invitation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </main>
     </SignedIn>
 </Layout>
@@ -193,9 +273,11 @@ import "../styles/global.css";
 <script>
 class CompartmentsPage {
     apiUrl: string;
+    currentCompartmentId: string | null;
 
     constructor() {
         this.apiUrl = import.meta.env.PUBLIC_BACKEND_URL || 'http://localhost:8080';
+        this.currentCompartmentId = null;
         this.init();
     }
 
@@ -266,6 +348,25 @@ class CompartmentsPage {
         form?.addEventListener('submit', (e) => {
             e.preventDefault();
             this.createCompartment();
+        });
+
+        // Manage modal events
+        document.getElementById('manage-modal-close')?.addEventListener('click', () => {
+            this.hideManageModal();
+        });
+
+        // Invite member modal events
+        document.getElementById('invite-modal-close')?.addEventListener('click', () => {
+            this.hideInviteModal();
+        });
+
+        document.getElementById('invite-cancel-btn')?.addEventListener('click', () => {
+            this.hideInviteModal();
+        });
+
+        document.getElementById('invite-member-form')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.inviteMember();
         });
     }
 
@@ -474,8 +575,8 @@ class CompartmentsPage {
     }
 
     manageCompartment(compartmentId: string) {
-        // Navigate to compartment management (could be a new page or modal)
-        // For now, just log. In a real app, you'd open management interface
+        this.currentCompartmentId = compartmentId;
+        this.showManageModal();
     }
 
     async deleteCompartment(compartmentId: string, compartmentName: string) {
@@ -613,8 +714,232 @@ class CompartmentsPage {
         }
     }
 
+    async showManageModal() {
+        try {
+            const modal = document.getElementById('manage-modal');
+            const title = document.getElementById('manage-modal-title');
+            const content = document.getElementById('manage-modal-content');
+            
+            if (!modal || !title || !content) return;
+
+            // Show modal with loading
+            modal.classList.remove('hidden');
+            content.innerHTML = '<div class="flex justify-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div></div>';
+
+            const token = await this.getAuthToken();
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            // Fetch compartment with members (single call)
+            const response = await fetch(`${this.apiUrl}/api/compartments/members?compartmentId=${this.currentCompartmentId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch compartment details');
+            }
+
+            const data = await response.json();
+            console.log('Compartment data received:', data); // Debug log
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to fetch compartment details');
+            }
+
+            // Extract compartment and members from the response
+            const compartmentWithMembers = data.data;
+            // Since Compartment is embedded, the compartment properties are at the top level
+            const members = compartmentWithMembers.members || [];
+
+            console.log('Compartment with members:', compartmentWithMembers); // Debug log
+            console.log('Members:', members); // Debug log
+
+            title.textContent = `Manage: ${compartmentWithMembers.name}`;
+            this.renderManageContent(compartmentWithMembers, members);
+
+        } catch (error) {
+            console.error('Error showing manage modal:', error);
+            const content = document.getElementById('manage-modal-content');
+            if (content) {
+                content.innerHTML = `
+                    <div class="text-center py-8">
+                        <p class="text-red-600">Failed to load compartment details</p>
+                        <p class="text-sm text-gray-500 mt-2">Error: ${error instanceof Error ? error.message : 'Unknown error'}</p>
+                        <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
+                            Reload Page
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    renderManageContent(compartment: any, members: any[]) {
+        const content = document.getElementById('manage-modal-content');
+        if (!content) return;
+
+        content.innerHTML = `
+            <div class="space-y-6">
+                <!-- Compartment Info -->
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-2">Information</h4>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p><span class="font-medium">Name:</span> ${this.escapeHtml(compartment.name)}</p>
+                        ${compartment.description ? `<p class="mt-2"><span class="font-medium">Description:</span> ${this.escapeHtml(compartment.description)}</p>` : ''}
+                        <p class="mt-2"><span class="font-medium">Created:</span> ${new Date(compartment.createdAt).toLocaleDateString()}</p>
+                    </div>
+                </div>
+
+                <!-- Members -->
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-medium text-gray-900">Members (${members.length})</h4>
+                        <button 
+                            id="invite-member-btn"
+                            class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center"
+                        >
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Invite Member
+                        </button>
+                    </div>
+                    <div class="space-y-2">
+                        ${members.map(member => `
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">${this.escapeHtml(member.userId)}</p>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${member.role === 'owner' ? 'bg-purple-100 text-purple-800' : member.role === 'admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">
+                                                ${member.role}
+                                            </span>
+                                            <span class="text-xs text-gray-500">
+                                                Joined ${new Date(member.joinedAt).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                ${member.role !== 'owner' ? `
+                                    <button class="text-red-600 hover:text-red-800 text-sm" title="Remove member" data-user-id="${member.userId}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="border-t pt-4">
+                    <div class="flex justify-end space-x-3">
+                        <button id="edit-compartment-btn" class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            Edit Compartment
+                        </button>
+                        <button id="view-boxes-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                            View Boxes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Bind events for the new content
+        document.getElementById('invite-member-btn')?.addEventListener('click', () => {
+            this.showInviteModal();
+        });
+    }
+
+    hideManageModal() {
+        const modal = document.getElementById('manage-modal');
+        modal?.classList.add('hidden');
+        this.currentCompartmentId = null;
+    }
+
+    showInviteModal() {
+        const modal = document.getElementById('invite-member-modal');
+        modal?.classList.remove('hidden');
+        // Clear form
+        const form = document.getElementById('invite-member-form') as HTMLFormElement;
+        form?.reset();
+    }
+
+    hideInviteModal() {
+        const modal = document.getElementById('invite-member-modal');
+        modal?.classList.add('hidden');
+    }
+
+    async inviteMember() {
+        const form = document.getElementById('invite-member-form') as HTMLFormElement;
+        const submitBtn = document.getElementById('invite-submit-btn');
+        
+        try {
+            if (submitBtn) {
+                (submitBtn as HTMLButtonElement).disabled = true;
+                submitBtn.textContent = 'Sending...';
+            }
+
+            const formData = new FormData(form);
+            const inviteData = {
+                userId: (formData.get('userId') as string)?.trim(),
+                role: formData.get('role') as string
+            };
+
+            if (!inviteData.userId) {
+                this.updateStatus('User ID is required', 'error');
+                return;
+            }
+
+            const token = await this.getAuthToken();
+            if (!token) {
+                this.updateStatus('Authentication required', 'error');
+                return;
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/compartments/invite?compartmentId=${this.currentCompartmentId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(inviteData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to send invitation');
+            }
+
+            this.hideInviteModal();
+            this.updateStatus('Invitation sent successfully!', 'success');
+            
+            // Refresh the manage modal content
+            await this.showManageModal();
+            
+        } catch (error) {
+            console.error('Error sending invitation:', error);
+            this.updateStatus(error.message || 'Failed to send invitation', 'error');
+        } finally {
+            if (submitBtn) {
+                (submitBtn as HTMLButtonElement).disabled = false;
+                submitBtn.textContent = 'Send Invitation';
+            }
+        }
+    }
+
     escapeHtml(text: string): string {
-        const map: {[key: string]: string} = {
+        const map: { [key: string]: string } = {
             '&': '&amp;',
             '<': '&lt;',
             '>': '&gt;',
