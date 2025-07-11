@@ -63,7 +63,7 @@ import "../styles/global.css";
                 <!-- Main Content -->
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
                     <!-- Create Box Form -->
-                    <div class="lg:col-span-1 h-fit">
+                    <div class="lg:col-span-1 h-fit space-y-6">
                         <CreateBoxForm />
                     </div>
 
@@ -202,23 +202,30 @@ import "../styles/global.css";
     // Create box event
     document.addEventListener("create-box", async (e) => {
         try {
-            const { name, room, description, items } = (e as CustomEvent).detail;
+            const { name, room, description, items, compartmentId } = (e as CustomEvent).detail;
             showLoading(true);
             updateStatus("Creating QR box...");
 
             const token = await getAuthToken();
+            const requestBody: any = {
+                name: name,
+                room: room || "",
+                description: description || "",
+                items: items.join("\n"),
+            };
+
+            // Only include compartmentId if it's not empty
+            if (compartmentId) {
+                requestBody.compartmentId = compartmentId;
+            }
+
             const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    name: name,
-                    room: room || "",
-                    description: description || "",
-                    items: items.join("\n"),
-                }),
+                body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
@@ -226,7 +233,6 @@ import "../styles/global.css";
             }
 
             const data = await response.json();
-            console.log("Box created:", data);
 
             // Show success and reload boxes
             updateStatus("Box created successfully!", "success");
@@ -331,7 +337,9 @@ import "../styles/global.css";
                 <div class="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all">
                     <div class="p-5">
                         <div class="flex items-start justify-between mb-2">
-                            <h4 class="text-lg font-bold text-gray-900">${box.name}</h4>
+                            <div class="flex-1">
+                                <h4 class="text-lg font-bold text-gray-900">${box.name}</h4>
+                            </div>
                             ${
                                 box.room 
                                     ? `<span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">

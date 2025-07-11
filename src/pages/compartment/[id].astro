@@ -1,0 +1,693 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { SignedIn, SignedOut } from "@clerk/astro/components";
+import "../../styles/global.css";
+
+// Get the compartment ID from the URL
+const { id } = Astro.params;
+
+if (!id) {
+    return Astro.redirect("/compartments");
+}
+---
+
+<Layout title="Compartment Details" currentPage="compartments">
+    <SignedOut>
+        <div class="min-h-s                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.196-2.121M7 20v-2c0-.656.126-1.283.356-1.857M7 20a3 3 0 013-3h4a3 3 0 713 3z"></path>                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.196-2.121M7 20v-2c0-.656.126-1.283.356-1.857M7 20a3 3 0 013-3h4a3 3 0 713 3z"></path>een bg-gray-50 flex items-center justify-center">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-900 mb-4">
+                    Access Denied
+                </h1>
+                <p class="text-gray-600 mb-4">
+                    You need to be signed in to access this page.
+                </p>
+                <a
+                    href="/"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                    Go to Home
+                </a>
+            </div>
+        </div>
+    </SignedOut>
+
+    <SignedIn>
+        <main class="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Header -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <a 
+                                href="/compartments" 
+                                class="mr-4 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                                title="Back to Compartments"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </a>
+                            <div>
+                                <h1 id="compartment-title" class="text-3xl font-bold text-gray-900">
+                                    Loading...
+                                </h1>
+                                <p id="compartment-description" class="text-gray-600 mt-1">
+                                    Loading compartment details...
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button
+                                id="refresh-btn"
+                                class="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg transition-colors"
+                                title="Refresh boxes"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Message -->
+                <div
+                    id="status"
+                    class="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200 shadow-sm"
+                >
+                    <div class="flex items-center">
+                        <svg
+                            class="w-5 h-5 mr-2 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            ></path>
+                        </svg>
+                        <div class="text-blue-800 font-medium">
+                            Loading compartment details...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loading" class="flex justify-center items-center py-20">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <!-- Create Box Form (Sidebar) -->
+                    <div class="lg:col-span-1 order-2 lg:order-1">
+                        <div id="create-box-form" style="display: none;">
+                            <!-- CreateBoxForm component will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Boxes Grid -->
+                    <div class="lg:col-span-3 order-1 lg:order-2">
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-600">Total Boxes</p>
+                                        <p id="total-boxes" class="text-2xl font-semibold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-600">Items Stored</p>
+                                        <p id="total-items" class="text-2xl font-semibold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-600">Recent Activity</p>
+                                        <p id="recent-activity" class="text-2xl font-semibold text-gray-900">Today</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Boxes List -->
+                        <div class="bg-white shadow-sm rounded-lg p-4 border border-gray-100 mb-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                                    <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                    </svg>
+                                    Boxes in this Compartment
+                                </h3>
+                            </div>
+                        </div>
+                        
+                        <div id="boxes-container" class="grid gap-4 grid-cols-1 md:grid-cols-2">
+                            <!-- Boxes will be loaded here -->
+                        </div>
+
+                        <!-- Empty State -->
+                        <div id="boxes-empty" class="text-center p-8 bg-white border border-gray-100 rounded-lg shadow-sm hidden">
+                            <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                            <h3 class="text-lg font-medium text-gray-700 mb-1">No boxes in this compartment</h3>
+                            <p class="text-gray-500 text-sm">Create your first box to start organizing your items</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </SignedIn>
+</Layout>
+
+<script>
+class CompartmentDetailsPage {
+    compartmentId: string;
+    apiUrl: string;
+
+    constructor() {
+        console.log('🚀 CompartmentDetailsPage initialized');
+        this.compartmentId = window.location.pathname.split('/').pop() || '';
+        this.apiUrl = import.meta.env.PUBLIC_BACKEND_URL || 'http://localhost:8080';
+        this.init();
+    }
+
+    init() {
+        console.log('⚡ Initializing compartment details page for ID:', this.compartmentId);
+        this.bindEvents();
+        this.waitForClerkAndLoad();
+    }
+
+    async waitForClerkAndLoad() {
+        console.log('⏳ Waiting for Clerk to be ready...');
+        
+        let attempts = 0;
+        const maxAttempts = 50;
+        
+        while (attempts < maxAttempts) {
+            if (typeof window !== 'undefined' && (window as any).Clerk && (window as any).Clerk.loaded) {
+                console.log('✅ Clerk is loaded!');
+                break;
+            }
+            
+            if (attempts % 10 === 0) {
+                console.log(`⏳ Waiting for Clerk... attempt ${attempts + 1}/${maxAttempts}`);
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        if (attempts >= maxAttempts) {
+            console.error('❌ Clerk failed to load');
+            this.updateStatus('Authentication service not available. Please refresh the page.', 'error');
+            this.showLoading(false);
+            return;
+        }
+        
+        // Check if user is signed in
+        attempts = 0;
+        while (attempts < maxAttempts) {
+            if ((window as any).Clerk.user) {
+                console.log('✅ User is signed in!');
+                await this.loadCompartmentDetails();
+                await this.loadBoxes();
+                return;
+            }
+            
+            if (attempts % 10 === 0) {
+                console.log(`⏳ Waiting for user session... attempt ${attempts + 1}/${maxAttempts}`);
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        console.warn('⚠️ User is not signed in');
+        this.updateStatus('Please sign in to view compartment details.', 'error');
+        this.showLoading(false);
+    }
+
+    bindEvents() {
+        const refreshBtn = document.getElementById('refresh-btn');
+        refreshBtn?.addEventListener('click', () => {
+            this.loadBoxes();
+        });
+    }
+
+    async getAuthToken(): Promise<string | null> {
+        try {
+            if (typeof window !== 'undefined' && (window as any).Clerk && (window as any).Clerk.session) {
+                const token = await (window as any).Clerk.session.getToken();
+                return token;
+            }
+            return null;
+        } catch (error) {
+            console.error('❌ Error getting auth token:', error);
+            return null;
+        }
+    }
+
+    async loadCompartmentDetails() {
+        try {
+            const token = await this.getAuthToken();
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/compartments/list`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch compartment details');
+            }
+
+            const data = await response.json();
+            const compartments = data.data?.compartments || [];
+            const compartment = compartments.find((c: any) => c.id === this.compartmentId);
+
+            if (!compartment) {
+                throw new Error('Compartment not found');
+            }
+
+            // Update page title and description
+            const titleEl = document.getElementById('compartment-title');
+            const descEl = document.getElementById('compartment-description');
+            
+            if (titleEl) titleEl.textContent = compartment.name;
+            if (descEl) {
+                descEl.textContent = compartment.description || 'No description provided';
+            }
+
+            // Update page title
+            document.title = `${compartment.name} - QR Boxes`;
+
+        } catch (error) {
+            console.error('❌ Error loading compartment details:', error);
+            this.updateStatus(`Failed to load compartment: ${(error as Error).message}`, 'error');
+        }
+    }
+
+    async loadBoxes() {
+        console.log('🔄 Loading boxes for compartment:', this.compartmentId);
+        
+        try {
+            this.showLoading(true);
+            this.updateStatus('Loading boxes...');
+
+            const token = await this.getAuthToken();
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/compartments/boxes?compartmentId=${this.compartmentId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ API Error:', response.status, errorText);
+                throw new Error(`Failed to fetch boxes: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('✅ Loaded boxes:', data.data?.boxes?.length || 0);
+            
+            const boxes = data.data?.boxes || [];
+            
+            this.renderBoxes(boxes);
+            this.updateStats(boxes);
+            this.updateStatus('', 'success');
+        } catch (error) {
+            console.error('❌ Error loading boxes:', error);
+            this.updateStatus(`Failed to load boxes: ${(error as Error).message}`, 'error');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    renderBoxes(boxes: any[]) {
+        const container = document.getElementById('boxes-container');
+        const emptyState = document.getElementById('boxes-empty');
+
+        if (!boxes || boxes.length === 0) {
+            if (container) container.innerHTML = '';
+            if (emptyState) emptyState.classList.remove('hidden');
+            return;
+        }
+
+        if (emptyState) emptyState.classList.add('hidden');
+        if (container) {
+            // Use exact same box card structure as dashboard for perfect consistency
+            container.innerHTML = boxes.map(box => `
+                <div class="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all">
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex-1">
+                                <h4 class="text-lg font-bold text-gray-900">${this.escapeHtml(box.name)}</h4>
+                                ${
+                                    box.compartmentId 
+                                        ? `<div class="flex items-center mt-1">
+                                            <svg class="w-3 h-3 text-green-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.196-2.121M7 20v-2c0-.656.126-1.283.356-1.857M7 20a3 3 0 713-3h4a3 3 0 713 3z"></path>
+                                            </svg>
+                                            <span class="text-xs text-green-600 font-medium">Shared in compartment</span>
+                                        </div>`
+                                        : `<div class="flex items-center mt-1">
+                                            <svg class="w-3 h-3 text-gray-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                            </svg>
+                                            <span class="text-xs text-gray-400 font-medium">Personal box</span>
+                                        </div>`
+                                }
+                            </div>
+                            ${
+                                box.room 
+                                    ? `<span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                        </svg>
+                                        ${this.escapeHtml(box.room)}
+                                    </span>`
+                                    : ''
+                            }
+                        </div>
+                        ${
+                            box.description 
+                                ? `<p class="text-sm text-gray-600 mb-3 line-clamp-2">${this.escapeHtml(box.description)}</p>`
+                                : ''
+                        }
+                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                            <span class="font-medium">${box.items?.length || 0} items</span>
+                            <span class="mx-2">•</span>
+                            <span class="text-xs">${new Date(box.createdAt).toLocaleDateString()}</span>
+                        </div>
+
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            ${
+                                box.items && box.items.length > 0
+                                    ? box.items
+                                          .slice(0, 3)
+                                          .map((item: string, i: number) => `
+                                    <span class="inline-flex items-center bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
+                                        ${this.escapeHtml(item)}
+                                    </span>
+                                `)
+                                          .join("") +
+                                      (box.items.length > 3
+                                          ? `<span class="text-gray-400 text-xs">+${box.items.length - 3} more</span>`
+                                          : "")
+                                    : '<span class="text-gray-400 text-xs">No items</span>'
+                            }
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-100 bg-gray-50 p-3 rounded-b-xl flex justify-between items-center">
+                        <button data-id="${box.id}" data-action="view" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                            View details
+                        </button>
+                        <div class="flex gap-2">
+                            <button data-id="${box.id}" data-action="qr" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md">
+                                Show QR
+                            </button>
+                            <button data-id="${box.id}" data-name="${this.escapeHtml(box.name)}" data-action="delete" class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Bind button events
+            this.bindBoxEvents();
+        }
+    }
+
+    bindBoxEvents() {
+        const container = document.getElementById('boxes-container');
+        
+        // Add event listeners to all box buttons using delegation
+        container?.querySelectorAll('[data-action]').forEach(button => {
+            button.addEventListener('click', () => {
+                const boxId = button.getAttribute('data-id');
+                const action = button.getAttribute('data-action');
+                
+                if (action === 'view' && boxId) {
+                    // Navigate to the box details page
+                    window.location.href = `/box/${boxId}`;
+                } else if (action === 'qr' && boxId) {
+                    this.showBoxQR(boxId);
+                } else if (action === 'delete') {
+                    const boxName = button.getAttribute('data-name');
+                    if (boxId && boxName) {
+                        this.deleteBox(boxId, boxName);
+                    }
+                }
+            });
+        });
+    }
+
+    updateStats(boxes: any[]) {
+        const totalBoxes = boxes.length;
+        const totalItems = boxes.reduce((sum, box) => sum + (box.items?.length || 0), 0);
+
+        const totalBoxesEl = document.getElementById('total-boxes');
+        const totalItemsEl = document.getElementById('total-items');
+
+        if (totalBoxesEl) totalBoxesEl.textContent = totalBoxes.toString();
+        if (totalItemsEl) totalItemsEl.textContent = totalItems.toString();
+    }
+
+    // Show box QR in modal
+    async showBoxQR(boxId: string) {
+        try {
+            this.showLoading(true);
+            const token = await this.getAuthToken();
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            const response = await fetch(
+                `${this.apiUrl}/api/boxes/qr?id=${boxId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to load QR: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const box = data.data;
+
+            // Create and show QR modal
+            this.createQRModal(box);
+        } catch (error) {
+            console.error("Error showing box QR:", error);
+            this.updateStatus(`Error: ${(error as Error).message}`, "error");
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    createQRModal(box: any) {
+        // Remove existing modal if present
+        const existingModal = document.getElementById('qr-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Create modal HTML
+        const modalHTML = `
+            <div id="qr-modal" class="fixed inset-0 items-center justify-center z-50 flex transition-all duration-300 ease-out" style="background-color: rgba(0, 0, 0, 0.5);">
+                <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all duration-300 ease-out scale-100 opacity-100" id="qr-modal-inner">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold">QR Code</h3>
+                        <button class="close-qr-modal text-gray-500 hover:text-gray-700">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="qr-content" class="text-center">
+                        <div class="mb-2 font-semibold">${this.escapeHtml(box.name)}</div>
+                        <div class="bg-white p-3 inline-block rounded-lg shadow-sm border-2 border-gray-100 mb-3">
+                            <img src="data:image/png;base64,${box.qrCode}" class="w-48 h-48" alt="QR Code" />
+                        </div>
+                        <div class="text-xs text-gray-500">Scan this QR code to access box content</div>
+                    </div>
+                    <div class="flex justify-end mt-6 gap-2">
+                        <button id="download-qr-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                            Download QR
+                        </button>
+                        <button class="close-qr-modal bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Add event listeners
+        const modal = document.getElementById('qr-modal');
+        const downloadBtn = document.getElementById('download-qr-btn');
+        
+        // Close modal events
+        modal?.querySelectorAll('.close-qr-modal').forEach(btn => {
+            btn.addEventListener('click', () => this.closeQRModal());
+        });
+
+        // Download QR event
+        downloadBtn?.addEventListener('click', () => {
+            const img = modal?.querySelector("img");
+            if (img) {
+                const link = document.createElement("a");
+                link.href = img.src;
+                link.download = `qr-code-${box.name}-${new Date().getTime()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+    }
+
+    closeQRModal() {
+        const modal = document.getElementById('qr-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    // Delete box
+    async deleteBox(boxId: string, boxName: string) {
+        try {
+            if (!confirm(`Are you sure you want to delete box "${boxName}"? This cannot be undone.`)) {
+                return;
+            }
+            
+            this.showLoading(true);
+            this.updateStatus(`Deleting box "${boxName}"...`);
+            
+            const token = await this.getAuthToken();
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/boxes/delete?id=${boxId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete box: ${response.status}`);
+            }
+
+            this.updateStatus(`Box "${boxName}" deleted successfully`, "success");
+            await this.loadBoxes(); // Reload boxes list
+        } catch (error) {
+            console.error("Error deleting box:", error);
+            this.updateStatus(`Error deleting box: ${(error as Error).message}`, "error");
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    showLoading(show: boolean) {
+        const loading = document.getElementById('loading');
+        if (loading) {
+            loading.style.display = show ? 'flex' : 'none';
+        }
+    }
+
+    updateStatus(message: string, type: string = 'info') {
+        const statusEl = document.getElementById('status');
+        if (!statusEl) return;
+
+        if (!message) {
+            statusEl.style.display = 'none';
+            return;
+        }
+
+        statusEl.style.display = 'block';
+        
+        const colors: {[key: string]: string} = {
+            info: 'bg-blue-50 border-blue-200 text-blue-800',
+            success: 'bg-green-50 border-green-200 text-green-800',
+            error: 'bg-red-50 border-red-200 text-red-800',
+            loading: 'bg-yellow-50 border-yellow-200 text-yellow-800'
+        };
+
+        statusEl.className = `mb-6 p-4 rounded-lg shadow-sm ${colors[type] || colors.info}`;
+        
+        const messageEl = statusEl.querySelector('div:last-child');
+        if (messageEl) {
+            messageEl.textContent = message;
+        }
+    }
+
+    escapeHtml(text: string): string {
+        const map: {[key: string]: string} = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 DOM loaded, initializing CompartmentDetailsPage...');
+    new CompartmentDetailsPage();
+});
+
+console.log('📝 Compartment details script loaded');
+</script>

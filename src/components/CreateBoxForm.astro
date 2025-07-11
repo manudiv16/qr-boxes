@@ -37,6 +37,22 @@
 
         <div>
             <label
+                for="box-compartment"
+                class="block text-sm font-medium text-gray-700 mb-2"
+                >Compartment (optional)</label
+            >
+            <select
+                id="box-compartment"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            >
+                <option value="">Personal box (private)</option>
+                <!-- Compartments will be loaded here -->
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Choose a compartment to share this box with others</p>
+        </div>
+
+        <div>
+            <label
                 for="box-room"
                 class="block text-sm font-medium text-gray-700 mb-2"
                 >Room</label
@@ -130,10 +146,89 @@
         const boxNameInput = document.getElementById("box-name");
         const boxRoomInput = document.getElementById("box-room");
         const boxDescriptionInput = document.getElementById("box-description");
+        const boxCompartmentSelect = document.getElementById("box-compartment");
         const descriptionCounterEl = document.getElementById("description-counter");
 
         // State
         let boxItems = [];
+        let compartments = [];
+
+        // Load compartments
+        async function loadCompartments() {
+            try {
+                // Wait for Clerk to be ready
+                await waitForClerk();
+                
+                const token = await window.Clerk.session.getToken();
+                if (!token) {
+                    console.log('No authentication token available');
+                    return;
+                }
+
+                const apiUrl = 'http://localhost:8080'; // Use env variable in production
+                const response = await fetch(`${apiUrl}/api/compartments/list`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Extract compartments from the nested response structure
+                    compartments = data.data?.compartments || data.compartments || [];
+                    renderCompartmentOptions();
+                } else {
+                    console.error('Failed to fetch compartments:', response.status);
+                }
+            } catch (error) {
+                console.error('Error loading compartments:', error);
+            }
+        }
+
+        async function waitForClerk() {
+            return new Promise((resolve) => {
+                const checkClerk = () => {
+                    if (window.Clerk && window.Clerk.session) {
+                        resolve();
+                    } else {
+                        setTimeout(checkClerk, 100);
+                    }
+                };
+                checkClerk();
+            });
+        }
+
+        function renderCompartmentOptions() {
+            if (!boxCompartmentSelect) {
+                console.error('Compartment select element not found');
+                return;
+            }
+
+            // Keep the default "Personal box" option and add compartments
+            const defaultOption = boxCompartmentSelect.querySelector('option[value=""]');
+            boxCompartmentSelect.innerHTML = '';
+            
+            // Re-add the default option
+            if (defaultOption) {
+                boxCompartmentSelect.appendChild(defaultOption);
+            } else {
+                const newDefaultOption = document.createElement('option');
+                newDefaultOption.value = '';
+                newDefaultOption.textContent = 'Personal box (private)';
+                boxCompartmentSelect.appendChild(newDefaultOption);
+            }
+
+            // Add compartment options
+            if (compartments && compartments.length > 0) {
+                compartments.forEach(compartment => {
+                    const option = document.createElement('option');
+                    option.value = compartment.id;
+                    option.textContent = compartment.name;
+                    boxCompartmentSelect.appendChild(option);
+                });
+            }
+        }
 
         // Functions
         function addItem() {
@@ -229,6 +324,7 @@
                 const boxName = boxNameInput?.value;
                 const boxRoom = boxRoomInput?.value?.trim() || "";
                 const boxDescription = boxDescriptionInput?.value?.trim() || "";
+                const boxCompartmentId = boxCompartmentSelect?.value || null;
 
                 if (!boxName) {
                     updateStatusEvent("Box name is required", "error");
@@ -253,6 +349,7 @@
                         room: boxRoom,
                         description: boxDescription,
                         items: boxItems,
+                        compartmentId: boxCompartmentId,
                     },
                 });
                 document.dispatchEvent(event);
@@ -261,6 +358,7 @@
                 if (boxNameInput) boxNameInput.value = "";
                 if (boxRoomInput) boxRoomInput.value = "";
                 if (boxDescriptionInput) boxDescriptionInput.value = "";
+                if (boxCompartmentSelect) boxCompartmentSelect.value = "";
                 boxItems = [];
                 renderItemsList();
                 updateItemCounter();
@@ -317,5 +415,6 @@
         renderItemsList();
         updateItemCounter();
         updateDescriptionCounter();
+        loadCompartments();
     });
 </script>

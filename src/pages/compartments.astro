@@ -1,0 +1,632 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { SignedIn, SignedOut } from "@clerk/astro/components";
+import "../styles/global.css";
+---
+
+<Layout title="Compartments" currentPage="compartments">
+    <SignedOut>
+        <div class="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-900 mb-4">
+                    Access Denied
+                </h1>
+                <p class="text-gray-600 mb-4">
+                    You need to be signed in to access this page.
+                </p>
+                <a
+                    href="/"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                    Go to Home
+                </a>
+            </div>
+        </div>
+    </SignedOut>
+
+    <SignedIn>
+        <main class="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 pb-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-4">Compartments</h1>
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        Manage your shared spaces and collaborate with others on organizing your belongings.
+                    </p>
+                </div>
+
+                <!-- Status Message -->
+                <div
+                    id="status"
+                    class="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200 shadow-sm"
+                >
+                    <div class="flex items-center">
+                        <svg
+                            class="w-5 h-5 mr-2 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            ></path>
+                        </svg>
+                        <div class="text-blue-800 font-medium">
+                            Loading your compartments...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loading" class="flex justify-center items-center py-20">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                    <!-- Create Compartment Form -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white shadow-sm rounded-lg p-6 border border-gray-100 sticky top-4">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                                <svg
+                                    class="w-6 h-6 text-green-600 mr-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Create New Compartment
+                            </h2>
+
+                            <form id="create-compartment-form" class="space-y-4">
+                                <div>
+                                    <label
+                                        for="compartment-name"
+                                        class="block text-sm font-medium text-gray-700 mb-2"
+                                    >
+                                        Name <span class="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="compartment-name"
+                                        name="name"
+                                        required
+                                        maxlength="100"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        placeholder="e.g., Moving 2025, Office Inventory"
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label
+                                        for="compartment-description"
+                                        class="block text-sm font-medium text-gray-700 mb-2"
+                                    >
+                                        Description (optional)
+                                    </label>
+                                    <textarea
+                                        id="compartment-description"
+                                        name="description"
+                                        rows="3"
+                                        maxlength="500"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        placeholder="Brief description of this compartment..."
+                                    ></textarea>
+                                </div>
+                                
+                                <button
+                                    type="submit"
+                                    id="submit-create-compartment"
+                                    class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-sm hover:shadow disabled:bg-gray-400 disabled:shadow-none"
+                                >
+                                    Create Compartment
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Compartments List -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white shadow-sm rounded-lg p-4 border border-gray-100 mb-6">
+                            <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                                <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.196-2.121M7 20v-2c0-.656.126-1.283.356-1.857M7 20a3 3 0 013-3h4a3 3 0 013 3z"></path>
+                                </svg>
+                                My Compartments
+                            </h3>
+                        </div>
+                        
+                        <div id="compartments-container" class="grid gap-6 grid-cols-1 md:grid-cols-2">
+                            <!-- Compartments will be loaded here -->
+                        </div>
+
+                        <!-- Empty State -->
+                        <div id="compartments-empty" class="text-center py-16 hidden">
+                            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.196-2.121M7 20v-2c0-.656.126-1.283.356-1.857M7 20a3 3 0 013-3h4a3 3 0 013 3z"></path>
+                            </svg>
+                            <h3 class="text-xl font-medium text-gray-900 mb-2">No compartments yet</h3>
+                            <p class="text-gray-600 mb-6">Create your first compartment to start collaborating with others</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Confirmation Modal -->
+            <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+                    <div class="mt-3 text-center">
+                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">Delete Compartment</h3>
+                        <div class="mt-2 px-7 py-3">
+                            <p class="text-sm text-gray-500" id="delete-modal-message">
+                                Are you sure you want to delete this compartment? This action cannot be undone and the compartment must be empty (no boxes) before deletion.
+                            </p>
+                        </div>
+                        <div class="items-center px-4 py-3">
+                            <button id="delete-confirm-btn" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                Delete
+                            </button>
+                            <button id="delete-cancel-btn" class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-24 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </SignedIn>
+</Layout>
+
+<script>
+class CompartmentsPage {
+    apiUrl: string;
+
+    constructor() {
+        this.apiUrl = import.meta.env.PUBLIC_BACKEND_URL || 'http://localhost:8080';
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.waitForClerkAndLoad();
+    }
+
+    async waitForClerkAndLoad() {
+        
+        // First wait for Clerk to be available
+        let attempts = 0;
+        const maxAttempts = 50; // Wait up to 5 seconds
+        
+        while (attempts < maxAttempts) {
+            if (typeof window !== 'undefined' && (window as any).Clerk && (window as any).Clerk.loaded) {
+                break;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
+            attempts++;
+        }
+        
+        if (attempts >= maxAttempts) {
+            this.updateStatus('Authentication service not available. Please refresh the page.', 'error');
+            this.showLoading(false);
+            return;
+        }
+        
+        // Now check if user is signed in
+        attempts = 0;
+        while (attempts < maxAttempts) {
+            if ((window as any).Clerk.user) {
+                this.loadCompartments();
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
+            attempts++;
+        }
+        
+        // User is not signed in
+        this.updateStatus('Please sign in to access your compartments.', 'error');
+        this.showLoading(false);
+        
+        // Add sign-in button
+        const statusDiv = document.getElementById('status');
+        if (statusDiv) {
+            statusDiv.innerHTML = `
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-blue-800 mb-3">Please sign in to access your compartments.</p>
+                    <button id="sign-in-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                        Sign In
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('sign-in-btn')?.addEventListener('click', () => {
+                if ((window as any).Clerk) {
+                    (window as any).Clerk.openSignIn();
+                }
+            });
+        }
+    }
+
+    bindEvents() {
+        const form = document.getElementById('create-compartment-form') as HTMLFormElement;
+        form?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.createCompartment();
+        });
+    }
+
+    async getAuthToken(): Promise<string | null> {
+        try {
+            if (typeof window !== 'undefined' && (window as any).Clerk && (window as any).Clerk.session) {
+                const token = await (window as any).Clerk.session.getToken();
+                return token;
+            }
+            return null;
+        } catch (error) {
+            console.error('❌ Error getting auth token:', error);
+            return null;
+        }
+    }
+
+    async loadCompartments() {
+        try {
+            this.showLoading(true);
+            this.updateStatus('Loading compartments...');
+
+            const token = await this.getAuthToken();
+            
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/compartments/list`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ API Error:', response.status, errorText);
+                throw new Error(`Failed to fetch compartments: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // The backend returns: { success: true, data: { compartments: [...] } }
+            const compartments = data.data?.compartments || [];
+            
+            this.renderCompartments(compartments);
+            this.updateStatus('', 'success');
+        } catch (error) {
+            console.error('❌ Error loading compartments:', error);
+            this.updateStatus(`Failed to load compartments: ${(error as Error).message}`, 'error');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    renderCompartments(compartments: any[]) {
+        const container = document.getElementById('compartments-container');
+        const emptyState = document.getElementById('compartments-empty');
+
+        if (!compartments || compartments.length === 0) {
+            if (container) container.innerHTML = '';
+            if (emptyState) emptyState.classList.remove('hidden');
+            return;
+        }
+
+        if (emptyState) emptyState.classList.add('hidden');
+        if (container) {
+            // Render actual compartments
+            const compartmentCards = compartments.map(compartment => {
+                const escapedName = this.escapeHtml(compartment.name);
+                const escapedDesc = compartment.description ? this.escapeHtml(compartment.description) : '';
+                
+                return `
+                <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-all cursor-pointer">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-2">${escapedName}</h4>
+                            ${escapedDesc ? `<p class="text-gray-600 text-sm">${escapedDesc}</p>` : ''}
+                        </div>
+                        <div class="flex items-center space-x-1 text-xs text-gray-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>${new Date(compartment.createdAt).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                        <div class="flex items-center text-sm text-gray-500">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                            </svg>
+                            Owner
+                        </div>
+                        <div class="flex space-x-2">
+                            <button 
+                                class="view-compartment-btn text-blue-600 hover:text-blue-800 font-medium text-sm px-3 py-1 rounded-md hover:bg-blue-50 transition-colors border border-blue-300"
+                                data-compartment-id="${compartment.id}"
+                            >
+                                View Details
+                            </button>
+                            <button 
+                                class="manage-compartment-btn text-green-600 hover:text-green-800 font-medium text-sm px-3 py-1 rounded-md hover:bg-green-50 transition-colors border border-green-300"
+                                data-compartment-id="${compartment.id}"
+                            >
+                                Manage
+                            </button>
+                            <button 
+                                class="delete-compartment-btn text-white bg-red-600 hover:bg-red-700 font-medium text-sm px-3 py-1 rounded-md transition-colors border border-red-600"
+                                data-compartment-id="${compartment.id}"
+                                data-compartment-name="${escapedName}"
+                            >
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            container.innerHTML = compartmentCards.join('');
+
+            // Bind buttons
+            container.querySelectorAll('.view-compartment-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const compartmentId = btn.getAttribute('data-compartment-id');
+                    if (compartmentId) this.viewCompartment(compartmentId);
+                });
+            });
+
+            container.querySelectorAll('.manage-compartment-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const compartmentId = btn.getAttribute('data-compartment-id');
+                    if (compartmentId) this.manageCompartment(compartmentId);
+                });
+            });
+
+            container.querySelectorAll('.delete-compartment-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const compartmentId = btn.getAttribute('data-compartment-id');
+                    const compartmentName = btn.getAttribute('data-compartment-name');
+                    if (compartmentId && compartmentName) this.deleteCompartment(compartmentId, compartmentName);
+                });
+            });
+        }
+    }
+
+    async createCompartment() {
+        const form = document.getElementById('create-compartment-form') as HTMLFormElement;
+        const submitBtn = document.getElementById('submit-create-compartment') as HTMLButtonElement;
+
+        if (!form) return;
+
+        try {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+            }
+
+            const token = await this.getAuthToken();
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            const formData = new FormData(form);
+            const compartmentData = {
+                name: (formData.get('name') as string)?.trim() || '',
+                description: (formData.get('description') as string)?.trim() || ''
+            };
+
+            const response = await fetch(`${this.apiUrl}/api/compartments`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(compartmentData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to create compartment');
+            }
+
+            const data = await response.json();
+            this.updateStatus(data.message || 'Compartment created successfully!', 'success');
+            form.reset();
+            this.loadCompartments();
+
+        } catch (error) {
+            console.error('Error creating compartment:', error);
+            this.updateStatus((error as Error).message || 'Failed to create compartment', 'error');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Compartment';
+            }
+        }
+    }
+
+    viewCompartment(compartmentId: string) {
+        // Navigate to compartment details page
+        window.location.href = `/compartment/${compartmentId}`;
+    }
+
+    manageCompartment(compartmentId: string) {
+        // Navigate to compartment management (could be a new page or modal)
+        // For now, just log. In a real app, you'd open management interface
+    }
+
+    async deleteCompartment(compartmentId: string, compartmentName: string) {
+        // Show custom confirmation modal
+        this.showDeleteModal(compartmentId, compartmentName);
+    }
+
+    showDeleteModal(compartmentId: string, compartmentName: string) {
+        const modal = document.getElementById('delete-modal');
+        const message = document.getElementById('delete-modal-message');
+        const confirmBtn = document.getElementById('delete-confirm-btn');
+        const cancelBtn = document.getElementById('delete-cancel-btn');
+
+        if (!modal || !message || !confirmBtn || !cancelBtn) return;
+
+        // Update modal content
+        message.textContent = `Are you sure you want to delete "${compartmentName}"? This action cannot be undone and the compartment must be empty (no boxes) before deletion.`;
+
+        // Show modal
+        modal.classList.remove('hidden');
+
+        // Handle confirm
+        const handleConfirm = async () => {
+            // Disable confirm button and show loading state
+            (confirmBtn as HTMLButtonElement).disabled = true;
+            confirmBtn.textContent = 'Deleting...';
+            confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            modal.classList.add('hidden');
+            await this.performDeleteCompartment(compartmentId);
+            cleanup();
+        };
+
+        // Handle cancel
+        const handleCancel = () => {
+            modal.classList.add('hidden');
+            cleanup();
+        };
+
+        // Cleanup function to remove event listeners
+        const cleanup = () => {
+            // Reset button state
+            (confirmBtn as HTMLButtonElement).disabled = false;
+            confirmBtn.textContent = 'Delete';
+            confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            
+            confirmBtn.removeEventListener('click', handleConfirm);
+            cancelBtn.removeEventListener('click', handleCancel);
+        };
+
+        // Add event listeners
+        confirmBtn.addEventListener('click', handleConfirm);
+        cancelBtn.addEventListener('click', handleCancel);
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                handleCancel();
+            }
+        });
+    }
+
+    async performDeleteCompartment(compartmentId: string) {
+        try {
+            const token = await this.getAuthToken();
+            if (!token) {
+                this.updateStatus('Authentication required', 'error');
+                return;
+            }
+
+            this.updateStatus('Deleting compartment...', 'loading');
+
+            const deleteUrl = `${this.apiUrl}/api/compartments/delete?compartmentId=${compartmentId}`;
+
+            const response = await fetch(deleteUrl, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });            const data = await response.json();
+
+            if (!response.ok) {
+                // Handle specific error for non-empty compartment
+                if (data.error && data.error.includes('cannot delete compartment')) {
+                    this.updateStatus(data.error, 'error');
+                } else if (data.error && data.error.includes('unauthorized')) {
+                    this.updateStatus('You do not have permission to delete this compartment', 'error');
+                } else {
+                    this.updateStatus(data.error || 'Failed to delete compartment', 'error');
+                }
+                return;
+            }
+
+            this.updateStatus('Compartment deleted successfully!', 'success');
+            // Reload compartments list
+            await this.loadCompartments();
+
+        } catch (error) {
+            this.updateStatus('Failed to delete compartment. Please try again.', 'error');
+        }
+    }
+
+    showLoading(show: boolean) {
+        const loading = document.getElementById('loading');
+        if (loading) {
+            loading.style.display = show ? 'flex' : 'none';
+        }
+    }
+
+    updateStatus(message: string, type: string = 'info') {
+        const statusEl = document.getElementById('status');
+        if (!statusEl) return;
+
+        if (!message) {
+            statusEl.style.display = 'none';
+            return;
+        }
+
+        statusEl.style.display = 'block';
+        
+        // Update styles based on type
+        const colors: {[key: string]: string} = {
+            info: 'bg-blue-50 border-blue-200 text-blue-800',
+            success: 'bg-green-50 border-green-200 text-green-800',
+            error: 'bg-red-50 border-red-200 text-red-800',
+            loading: 'bg-yellow-50 border-yellow-200 text-yellow-800'
+        };
+
+        statusEl.className = `mb-6 p-4 rounded-lg shadow-sm ${colors[type] || colors.info}`;
+        
+        const messageEl = statusEl.querySelector('div:last-child');
+        if (messageEl) {
+            messageEl.textContent = message;
+        }
+    }
+
+    escapeHtml(text: string): string {
+        const map: {[key: string]: string} = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new CompartmentsPage();
+});
+</script>

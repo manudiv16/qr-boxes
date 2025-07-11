@@ -143,25 +143,52 @@ import { SignedIn, SignedOut, SignInButton } from "@clerk/astro/components";
                         
                         <!-- Floating QR code preview -->
                         <div class="absolute -top-4 -right-4 bg-white rounded-lg shadow-xl p-4 border border-gray-200">
-                            <div class="w-16 h-16 bg-black rounded grid grid-cols-8 gap-px">
-                                <!-- QR code pattern simulation -->
-                                <div class="bg-white"></div>
-                                <div class="bg-black"></div>
-                                <div class="bg-black"></div>
-                                <div class="bg-white"></div>
-                                <div class="bg-white"></div>
-                                <div class="bg-black"></div>
-                                <div class="bg-black"></div>
-                                <div class="bg-white"></div>
-                                <!-- More QR pattern... -->
-                                <div class="bg-black"></div>
-                                <div class="bg-white"></div>
-                                <div class="bg-white"></div>
-                                <div class="bg-black"></div>
-                                <div class="bg-black"></div>
-                                <div class="bg-white"></div>
-                                <div class="bg-white"></div>
-                                <div class="bg-black"></div>
+                            <div class="w-16 h-16 bg-white border border-gray-300 relative">
+                                <!-- QR Code más realista -->
+                                
+                                <!-- Cuadrado de posicionamiento superior izquierdo -->
+                                <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-black">
+                                    <div class="absolute top-0.5 left-0.5 w-3 h-3 bg-white">
+                                        <div class="absolute top-0.5 left-0.5 w-2 h-2 bg-black"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Cuadrado de posicionamiento superior derecho -->
+                                <div class="absolute top-0.5 right-0.5 w-4 h-4 bg-black">
+                                    <div class="absolute top-0.5 left-0.5 w-3 h-3 bg-white">
+                                        <div class="absolute top-0.5 left-0.5 w-2 h-2 bg-black"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Cuadrado de posicionamiento inferior izquierdo -->
+                                <div class="absolute bottom-0.5 left-0.5 w-4 h-4 bg-black">
+                                    <div class="absolute top-0.5 left-0.5 w-3 h-3 bg-white">
+                                        <div class="absolute top-0.5 left-0.5 w-2 h-2 bg-black"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Líneas de timing -->
+                                <div class="absolute top-4 left-5 right-5 h-px bg-black"></div>
+                                <div class="absolute top-5 bottom-5 left-4 w-px bg-black"></div>
+                                
+                                <!-- Patrón de datos en el centro -->
+                                <div class="absolute top-5 left-5 right-5 bottom-5 grid grid-cols-3 gap-0">
+                                    <div class="bg-black m-px"></div>
+                                    <div class="bg-white m-px"></div>
+                                    <div class="bg-black m-px"></div>
+                                    <div class="bg-white m-px"></div>
+                                    <div class="bg-black m-px"></div>
+                                    <div class="bg-white m-px"></div>
+                                    <div class="bg-black m-px"></div>
+                                    <div class="bg-white m-px"></div>
+                                    <div class="bg-black m-px"></div>
+                                </div>
+                                
+                                <!-- Puntos adicionales -->
+                                <div class="absolute top-1 left-5 w-0.5 h-0.5 bg-black"></div>
+                                <div class="absolute top-2 left-6 w-0.5 h-0.5 bg-black"></div>
+                                <div class="absolute top-1 right-5 w-0.5 h-0.5 bg-black"></div>
+                                <div class="absolute bottom-1 left-5 w-0.5 h-0.5 bg-black"></div>
                             </div>
                             <p class="text-xs text-gray-600 mt-2 font-medium">Caja #001</p>
                         </div>

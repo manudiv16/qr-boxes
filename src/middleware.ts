@@ -1,5 +1,5 @@
 import { clerkMiddleware } from "@clerk/astro/server";
 
 export const onRequest = clerkMiddleware({
-    authorizedParties: ["https://manudev.dev"],
+    authorizedParties: [process.env.DOMAIN || `http://localhost:${process.env.PORT || 4321}`],
 });
