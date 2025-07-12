@@ -30,31 +30,6 @@ import "../styles/global.css";
             class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-12"
         >
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <!-- Status Message -->
-                <div
-                    id="status"
-                    class="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200 shadow-sm"
-                >
-                    <div class="flex items-center">
-                        <svg
-                            class="w-5 h-5 mr-2 text-blue-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            ></path>
-                        </svg>
-                        <div class="text-blue-800 font-medium">
-                            Loading your boxes...
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Loading Spinner -->
                 <div id="loading" class="flex justify-center items-center py-20">
                     <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -198,7 +173,6 @@ import "../styles/global.css";
 
 <script>
     // DOM elements
-    const statusEl = document.getElementById("status");
     const loadingEl = document.getElementById("loading");
     const boxesContainerEl = document.getElementById("boxes-container");
     const qrModal = document.getElementById("qr-modal");
@@ -270,7 +244,6 @@ import "../styles/global.css";
         }
         clearFilterBtn.classList.add('hidden');
         renderBoxes(allBoxes);
-        updateStatusForBoxes(allBoxes);
     });
 
     // Create box event
@@ -278,7 +251,6 @@ import "../styles/global.css";
         try {
             const { name, room, description, items, compartmentId } = (e as CustomEvent).detail;
             showLoading(true);
-            updateStatus("Creating QR box...");
 
             const token = await getAuthToken();
             const requestBody: any = {
@@ -308,24 +280,16 @@ import "../styles/global.css";
 
             const data = await response.json();
 
-            // Show success and reload boxes
-            updateStatus("Box created successfully!", "success");
+            // Reload boxes
             loadBoxes();
             
             // Close the create box modal
             closeCreateBoxModal();
         } catch (error) {
             console.error("Error creating QR box:", error);
-            updateStatus(error instanceof Error ? error.message : "An unknown error occurred", "error");
         } finally {
             showLoading(false);
         }
-    });
-
-    // Listen for status update events from components
-    document.addEventListener("update-status", (e) => {
-        const { message, type } = (e as CustomEvent).detail;
-        updateStatus(message, type);
     });
 
     downloadQrBtn?.addEventListener('click', () => {
@@ -373,7 +337,6 @@ import "../styles/global.css";
     async function loadBoxes() {
         try {
             showLoading(true);
-            updateStatus("Loading your boxes...");
 
             const token = await getAuthToken();
             const response = await fetch(
@@ -400,10 +363,8 @@ import "../styles/global.css";
             updateRoomFilter(boxes);
             
             renderBoxes(boxes);
-            updateStatusForBoxes(boxes);
         } catch (error) {
             console.error("Error loading boxes:", error);
-            updateStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, "error");
         } finally {
             showLoading(false);
         }
@@ -553,29 +514,6 @@ import "../styles/global.css";
         }
         
         renderBoxes(filteredBoxes);
-        updateStatusForBoxes(filteredBoxes, selectedRoom);
-    }
-
-    // Update status message for filtered boxes
-    function updateStatusForBoxes(boxes: any[], filterRoom?: string) {
-        let message;
-        
-        if (boxes.length === 0) {
-            if (filterRoom) {
-                message = `No boxes found in "${filterRoom}". Try a different room or create a new box.`;
-            } else {
-                message = "No boxes found. Create a box to get started.";
-            }
-        } else {
-            const boxText = boxes.length !== 1 ? "boxes" : "box";
-            if (filterRoom) {
-                message = `Showing ${boxes.length} ${boxText} in "${filterRoom}"`;
-            } else {
-                message = `Showing ${boxes.length} ${boxText}`;
-            }
-        }
-        
-        updateStatus(message);
     }
 
     // Delete box
@@ -586,7 +524,6 @@ import "../styles/global.css";
             }
             
             showLoading(true);
-            updateStatus(`Deleting box "${boxName}"...`);
             
             const token = await getAuthToken();
             const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/boxes/delete?id=${boxId}`, {
@@ -601,11 +538,9 @@ import "../styles/global.css";
                 throw new Error(`Failed to delete box: ${response.status}`);
             }
 
-            updateStatus(`Box "${boxName}" deleted successfully`, "success");
             loadBoxes(); // Reload boxes list
         } catch (error) {
             console.error("Error deleting box:", error);
-            updateStatus(`Error deleting box: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, "error");
         } finally {
             showLoading(false);
         }
@@ -646,7 +581,6 @@ import "../styles/global.css";
             showQRModal();
         } catch (error) {
             console.error("Error showing box QR:", error);
-            updateStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`, "error");
         } finally {
             showLoading(false);
         }
@@ -724,42 +658,6 @@ import "../styles/global.css";
         }
     }
 
-    // Update status message
-    function updateStatus(message: string, type: string = "info") {
-        if (!statusEl) return;
-
-        let color;
-        let icon;
-
-        switch (type) {
-            case "error":
-                color = "bg-red-50 border-red-200 text-red-800";
-                icon = `<svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>`;
-                break;
-            case "success":
-                color = "bg-green-50 border-green-200 text-green-800";
-                icon = `<svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>`;
-                break;
-            default:
-                color = "bg-blue-50 border-blue-200 text-blue-800";
-                icon = `<svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>`;
-        }
-
-        statusEl.className = `mb-6 p-4 rounded-lg ${color} shadow-sm border`;
-        statusEl.innerHTML = `
-            <div class="flex items-center">
-                ${icon}
-                <div class="font-medium">${message}</div>
-            </div>
-        `;
-    }
-
     // Show/hide loading spinner
     function showLoading(show: boolean) {
         if (!loadingEl) return;
@@ -775,7 +673,6 @@ import "../styles/global.css";
             loadBoxes();
         } catch (error) {
             console.error("Error initializing:", error);
-            updateStatus("Error initializing authentication. Please refresh the page.", "error");
         }
     });
 </script>
