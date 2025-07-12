@@ -272,7 +272,7 @@ class ProfilePage {
     currentTokenId: string | null;
 
     constructor() {
-        this.apiUrl = import.meta.env.PUBLIC_BACKEND_URL || 'http://localhost:8080';
+        this.apiUrl = process.env.PUBLIC_BACKEND_URL || 'http://localhost:8080';
         this.currentTokenId = null;
         this.init();
     }

@@ -201,7 +201,7 @@ class CompartmentDetailsPage {
     constructor() {
         console.log('🚀 CompartmentDetailsPage initialized');
         this.compartmentId = window.location.pathname.split('/').pop() || '';
-        this.apiUrl = import.meta.env.PUBLIC_BACKEND_URL || 'http://localhost:8080';
+        this.apiUrl = process.env.PUBLIC_BACKEND_URL || 'http://localhost:8080';
         this.init();
     }
 

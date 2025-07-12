@@ -214,7 +214,7 @@ import "../styles/global.css";
                 requestBody.compartmentId = compartmentId;
             }
 
-            const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes`, {
+            const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/boxes`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -295,7 +295,7 @@ import "../styles/global.css";
 
             const token = await getAuthToken();
             const response = await fetch(
-                `${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/list`,
+                `${process.env.PUBLIC_BACKEND_URL}/api/boxes/list`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -507,7 +507,7 @@ import "../styles/global.css";
             updateStatus(`Deleting box "${boxName}"...`);
             
             const token = await getAuthToken();
-            const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/delete?id=${boxId}`, {
+            const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/boxes/delete?id=${boxId}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -535,7 +535,7 @@ import "../styles/global.css";
             showLoading(true);
             const token = await getAuthToken();
             const response = await fetch(
-                `${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/qr?id=${boxId}`,
+                `${process.env.PUBLIC_BACKEND_URL}/api/boxes/qr?id=${boxId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

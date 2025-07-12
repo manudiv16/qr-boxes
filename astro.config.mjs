@@ -24,6 +24,9 @@ export default defineConfig({
       "process.env.PUBLIC_CLERK_PUBLISHABLE_KEY": JSON.stringify(
         process.env.PUBLIC_CLERK_PUBLISHABLE_KEY,
       ),
+      "process.env.PUBLIC_BACKEND_URL": JSON.stringify(
+        process.env.PUBLIC_BACKEND_URL || "http://localhost:8080",
+      ),
     },
   },
 });

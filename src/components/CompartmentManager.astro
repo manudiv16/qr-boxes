@@ -187,7 +187,7 @@
 <script>
 class CompartmentManager {
     constructor() {
-        this.apiUrl = import.meta.env.PUBLIC_BACKEND_URL || 'http://localhost:8080';
+        this.apiUrl = process.env.PUBLIC_BACKEND_URL || 'http://localhost:8080';
         this.currentCompartmentId = null;
         this.init();
     }

@@ -158,7 +158,7 @@
             try {
                 const token = await getAuthToken();
                 
-                const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/compartments/list`, {
+                const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/compartments/list`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'

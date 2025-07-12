@@ -309,7 +309,7 @@ try {
             if (addItemBtn) addItemBtn.textContent = 'Adding...';
             
             const token = await getAuthToken();
-            const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/add-item`, {
+            const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/boxes/add-item`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -350,7 +350,7 @@ try {
     // Refresh items list
     async function refreshItems() {
         try {
-            const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/public/box?id=${boxId}`);
+            const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/public/box?id=${boxId}`);
             
             if (response.ok) {
                 const data = await response.json();
@@ -450,7 +450,7 @@ try {
             const token = await getAuthToken();
             console.log('Got auth token, making request...');
             
-            const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/boxes/remove-item`, {
+            const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/boxes/remove-item`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
