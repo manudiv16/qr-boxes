@@ -30,9 +30,19 @@ import "../styles/global.css";
             class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-12"
         >
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <!-- Loading Spinner -->
-                <div id="loading" class="flex justify-center items-center py-20">
-                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                <!-- Loading Spinner (Fixed Position) -->
+                <div id="loading" class="fixed top-4 right-4 z-40 hidden">
+                    <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-3 flex items-center space-x-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500"></div>
+                        <span class="text-sm text-gray-600">Loading...</span>
+                    </div>
+                </div>
+
+                <!-- Subtle background check indicator -->
+                <div id="background-check" class="fixed top-4 right-4 z-30 hidden">
+                    <div class="bg-blue-50 border border-blue-200 rounded-full p-2">
+                        <div class="animate-pulse w-2 h-2 bg-blue-400 rounded-full"></div>
+                    </div>
                 </div>
 
                 <!-- Main Content -->
@@ -80,10 +90,15 @@ import "../styles/global.css";
                     id="qr-modal"
                     class="fixed inset-0 items-center justify-center z-50 hidden transition-all duration-300 ease-out"
                     style="background-color: rgba(0, 0, 0, 0.5);"
+                    transition:name="qr-modal-backdrop"
                 >
-                    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all duration-300 ease-out scale-95 opacity-0" id="qr-modal-inner">
+                    <div 
+                        class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all duration-300 ease-out scale-95 opacity-0" 
+                        id="qr-modal-inner"
+                        transition:name="qr-modal-content"
+                    >
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-bold">QR Code</h3>
+                            <h3 class="text-xl font-bold" transition:name="qr-modal-title">QR Code</h3>
                             <button
                                 class="close-qr-modal text-gray-500 hover:text-gray-700"
                             >
@@ -101,11 +116,12 @@ import "../styles/global.css";
                                 </svg>
                             </button>
                         </div>
-                        <div id="qr-content" class="text-center"></div>
+                        <div id="qr-content" class="text-center" transition:name="qr-modal-qr"></div>
                         <div class="flex justify-end mt-6 gap-2">
                             <button
                                 id="download-qr-btn"
                                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                                transition:name="qr-download-btn"
                             >
                                 Download QR
                             </button>
@@ -171,9 +187,63 @@ import "../styles/global.css";
     </SignedIn>
 </Layout>
 
+<style>
+    /* View Transitions for QR Modal */
+    ::view-transition-old(qr-modal-backdrop),
+    ::view-transition-new(qr-modal-backdrop) {
+        animation-duration: 0.3s;
+        animation-timing-function: ease-out;
+    }
+
+    ::view-transition-old(qr-modal-content),
+    ::view-transition-new(qr-modal-content) {
+        animation-duration: 0.4s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    ::view-transition-old(qr-code-image),
+    ::view-transition-new(qr-code-image) {
+        animation-duration: 0.5s;
+        animation-timing-function: ease-out;
+    }
+
+    /* Custom fade-in animation for QR modal */
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes fadeOutScale {
+        from {
+            opacity: 1;
+            transform: scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+    }
+
+    /* Apply custom animations when View Transitions are not available */
+    .no-view-transitions #qr-modal-inner {
+        animation: fadeInScale 0.3s ease-out;
+    }
+
+    .no-view-transitions #qr-modal-inner.closing {
+        animation: fadeOutScale 0.3s ease-out;
+    }
+</style>
+
 <script>
     // DOM elements
     const loadingEl = document.getElementById("loading");
+    const backgroundCheckEl = document.getElementById("background-check");
     const boxesContainerEl = document.getElementById("boxes-container");
     const qrModal = document.getElementById("qr-modal");
     const qrContent = document.getElementById("qr-content");
@@ -188,6 +258,9 @@ import "../styles/global.css";
     // State
     let allBoxes: any[] = []; // Store all boxes for filtering
     let availableRooms = new Set<string>(); // Track unique rooms
+    let isLoading = false; // Track loading state
+    let lastDataHash = ''; // Hash of last loaded data to avoid unnecessary reloads
+    let hasInitialLoad = false; // Track if we've done the initial load
 
     // Close modal buttons
     document.querySelectorAll(".close-qr-modal").forEach((btn) => {
@@ -205,7 +278,7 @@ import "../styles/global.css";
         }
     });
 
-    // Close modal with Escape key
+    // Close modal with Escape key and handle Ctrl+R
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             if (createBoxModal && !createBoxModal.classList.contains("hidden")) {
@@ -215,12 +288,18 @@ import "../styles/global.css";
                 closeQRModal();
             }
         }
+        
+        // Handle Ctrl+R (or Cmd+R on Mac) - refresh data instead of page
+        if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+            e.preventDefault(); // Prevent default browser refresh
+            loadBoxes(true); // Force reload the data
+        }
     });
 
     // Event Listeners
 
     refreshBtn?.addEventListener('click', () => {
-        loadBoxes();
+        loadBoxes(true); // Force reload when refresh button is clicked
     });
 
     // Room filter event listeners
@@ -280,8 +359,11 @@ import "../styles/global.css";
 
             const data = await response.json();
 
+            // Clear cache since we know data has changed
+            clearDataCache();
+            
             // Reload boxes
-            loadBoxes();
+            loadBoxes(true); // Force reload after creating a box
             
             // Close the create box modal
             closeCreateBoxModal();
@@ -333,10 +415,112 @@ import "../styles/global.css";
     }
 
 
-    // Load boxes from backend
-    async function loadBoxes() {
+    // Create a hash of the data for comparison
+    function createDataHash(boxes: any[]): string {
+        const dataString = JSON.stringify(boxes.map(box => ({
+            id: box.id,
+            name: box.name,
+            room: box.room,
+            description: box.description,
+            items: box.items,
+            createdAt: box.createdAt,
+            updatedAt: box.updatedAt
+        })));
+        
+        // Simple hash function
+        let hash = 0;
+        for (let i = 0; i < dataString.length; i++) {
+            const char = dataString.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+        return hash.toString();
+    }
+
+    // Save data to localStorage with timestamp
+    function saveDataToCache(boxes: any[], hash: string) {
         try {
-            showLoading(true);
+            const cacheData = {
+                boxes: boxes,
+                hash: hash,
+                timestamp: Date.now(),
+                userId: window.Clerk?.user?.id || 'unknown'
+            };
+            localStorage.setItem('qr-boxes-cache', JSON.stringify(cacheData));
+        } catch (error) {
+            console.warn('Could not save data to cache:', error);
+        }
+    }
+
+    // Load data from localStorage if valid
+    function loadDataFromCache(): { boxes: any[], hash: string } | null {
+        try {
+            const cached = localStorage.getItem('qr-boxes-cache');
+            if (!cached) return null;
+
+            const cacheData = JSON.parse(cached);
+            const currentUserId = window.Clerk?.user?.id || 'unknown';
+            
+            // Check if cache is for the same user and not too old (5 minutes)
+            const maxAge = 5 * 60 * 1000; // 5 minutes
+            const isValidAge = (Date.now() - cacheData.timestamp) < maxAge;
+            const isValidUser = cacheData.userId === currentUserId;
+
+            if (isValidAge && isValidUser && cacheData.boxes && cacheData.hash) {
+                return {
+                    boxes: cacheData.boxes,
+                    hash: cacheData.hash
+                };
+            }
+        } catch (error) {
+            console.warn('Could not load data from cache:', error);
+        }
+        return null;
+    }
+
+    // Clear cache (useful when we know data has changed)
+    function clearDataCache() {
+        try {
+            localStorage.removeItem('qr-boxes-cache');
+        } catch (error) {
+            console.warn('Could not clear cache:', error);
+        }
+    }
+
+    // Load boxes from backend
+    async function loadBoxes(forceReload = false) {
+        // Avoid loading if already in progress
+        if (isLoading && !forceReload) {
+            return;
+        }
+
+        // Try to load from cache first (only on initial load, not forced reloads)
+        if (!hasInitialLoad && !forceReload) {
+            const cachedData = loadDataFromCache();
+            if (cachedData) {
+                console.log('Loading from cache to avoid unnecessary network request');
+                allBoxes = cachedData.boxes;
+                lastDataHash = cachedData.hash;
+                updateRoomFilter(cachedData.boxes);
+                renderBoxes(cachedData.boxes);
+                hasInitialLoad = true;
+                
+                // Still check for updates in background without showing loading
+                setTimeout(() => loadBoxes(false), 1000);
+                return;
+            }
+        }
+
+        try {
+            isLoading = true;
+            
+            // Only show loading on forced reloads or when we don't have cached data
+            if (forceReload || !hasInitialLoad) {
+                showLoading(true);
+            } else {
+                // Show subtle background check indicator for silent updates
+                showBackgroundCheck(true);
+            }
 
             const token = await getAuthToken();
             const response = await fetch(
@@ -356,17 +540,37 @@ import "../styles/global.css";
             const data = await response.json();
             const boxes = data.data.boxes || [];
 
-            // Store all boxes for filtering
-            allBoxes = boxes;
+            // Create a more robust hash of the data to compare with previous load
+            const newDataHash = createDataHash(boxes);
             
-            // Update available rooms and room filter dropdown
-            updateRoomFilter(boxes);
+            // Only update if data has changed or it's a forced reload
+            if (forceReload || newDataHash !== lastDataHash) {
+                console.log('Data has changed, updating UI');
+                lastDataHash = newDataHash;
+                
+                // Store all boxes for filtering
+                allBoxes = boxes;
+                
+                // Update available rooms and room filter dropdown
+                updateRoomFilter(boxes);
+                
+                renderBoxes(boxes);
+                
+                // Save to cache
+                saveDataToCache(boxes, newDataHash);
+            } else {
+                console.log('No changes detected, skipping UI update');
+            }
             
-            renderBoxes(boxes);
+            hasInitialLoad = true;
         } catch (error) {
             console.error("Error loading boxes:", error);
+            // Clear cache on error to avoid stale data
+            clearDataCache();
         } finally {
+            isLoading = false;
             showLoading(false);
+            showBackgroundCheck(false);
         }
     }
 
@@ -441,7 +645,7 @@ import "../styles/global.css";
                             View details
                         </button>
                         <div class="flex gap-2">
-                            <button data-id="${box.id}" data-action="qr" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md">
+                            <button data-id="${box.id}" data-action="qr" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md transition-all duration-200 transform hover:scale-105" transition:name="qr-btn-${box.id}">
                                 Show QR
                             </button>
                             <button data-id="${box.id}" data-name="${box.name}" data-action="delete" class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md">
@@ -538,12 +742,25 @@ import "../styles/global.css";
                 throw new Error(`Failed to delete box: ${response.status}`);
             }
 
-            loadBoxes(); // Reload boxes list
+            // Clear cache since we know data has changed
+            clearDataCache();
+
+            loadBoxes(true); // Force reload after deleting a box
         } catch (error) {
             console.error("Error deleting box:", error);
         } finally {
             showLoading(false);
         }
+    }
+
+    // Preload QR image for smoother transitions
+    function preloadQRImage(base64Data: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => reject();
+            img.src = `data:image/png;base64,${base64Data}`;
+        });
     }
 
     // Show box QR in modal
@@ -568,14 +785,35 @@ import "../styles/global.css";
             const data = await response.json();
             const box = data.data;
 
+            // Preload the QR image for smoother transition
+            try {
+                await preloadQRImage(box.qrCode);
+            } catch (error) {
+                console.warn('Could not preload QR image:', error);
+            }
+
             if (qrContent) {
-                qrContent.innerHTML = `
-                    <div class="mb-2 font-semibold">${box.name}</div>
-                    <div class="bg-white p-3 inline-block rounded-lg shadow-sm border-2 border-gray-100 mb-3">
-                        <img src="data:image/png;base64,${box.qrCode}" class="w-48 h-48" alt="QR Code" />
-                    </div>
-                    <div class="text-xs text-gray-500">Scan this QR code to access box content</div>
-                `;
+                // Use View Transitions for content update if available
+                if ('startViewTransition' in document) {
+                    document.startViewTransition(() => {
+                        qrContent.innerHTML = `
+                            <div class="mb-2 font-semibold" transition:name="qr-box-name">${box.name}</div>
+                            <div class="bg-white p-3 inline-block rounded-lg shadow-sm border-2 border-gray-100 mb-3" transition:name="qr-code-container">
+                                <img src="data:image/png;base64,${box.qrCode}" class="w-48 h-48" alt="QR Code" transition:name="qr-code-image" />
+                            </div>
+                            <div class="text-xs text-gray-500" transition:name="qr-instruction">Scan this QR code to access box content</div>
+                        `;
+                    });
+                } else {
+                    // Fallback without transitions
+                    qrContent.innerHTML = `
+                        <div class="mb-2 font-semibold">${box.name}</div>
+                        <div class="bg-white p-3 inline-block rounded-lg shadow-sm border-2 border-gray-100 mb-3">
+                            <img src="data:image/png;base64,${box.qrCode}" class="w-48 h-48" alt="QR Code" />
+                        </div>
+                        <div class="text-xs text-gray-500">Scan this QR code to access box content</div>
+                    `;
+                }
             }
 
             showQRModal();
@@ -586,39 +824,61 @@ import "../styles/global.css";
         }
     }
 
-    // Show QR modal with animation
+    // Show QR modal with View Transitions
     function showQRModal() {
         const modal = document.getElementById('qr-modal');
         const modalContent = modal?.querySelector('#qr-modal-inner');
         
         if (modal && modalContent) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex'); // Add flex when showing
-            
-            // Force reflow
-            modal.offsetHeight;
-            
-            // Add animation classes
-            setTimeout(() => {
-                modalContent.classList.remove('scale-95', 'opacity-0');
-                modalContent.classList.add('scale-100', 'opacity-100');
-            }, 10);
+            // Use View Transitions API if available
+            if ('startViewTransition' in document) {
+                document.startViewTransition(() => {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                });
+            } else {
+                // Fallback to regular animation
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                
+                // Force reflow
+                modal.offsetHeight;
+                
+                // Add animation classes
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
         }
     }
 
-    // Close QR modal with animation
+    // Close QR modal with View Transitions
     function closeQRModal() {
         const modal = document.getElementById('qr-modal');
         const modalContent = modal?.querySelector('#qr-modal-inner');
         
         if (modal && modalContent) {
-            modalContent.classList.remove('scale-100', 'opacity-100');
-            modalContent.classList.add('scale-95', 'opacity-0');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex'); // Remove flex when hiding
-            }, 300);
+            // Use View Transitions API if available
+            if ('startViewTransition' in document) {
+                document.startViewTransition(() => {
+                    modalContent.classList.remove('scale-100', 'opacity-100');
+                    modalContent.classList.add('scale-95', 'opacity-0');
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                });
+            } else {
+                // Fallback to regular animation
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
+                
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 300);
+            }
         }
     }
 
@@ -661,18 +921,62 @@ import "../styles/global.css";
     // Show/hide loading spinner
     function showLoading(show: boolean) {
         if (!loadingEl) return;
-        loadingEl.style.display = show ? "flex" : "none";
+        
+        if (show) {
+            loadingEl.classList.remove("hidden");
+        } else {
+            loadingEl.classList.add("hidden");
+        }
+    }
+
+    // Show/hide subtle background check indicator
+    function showBackgroundCheck(show: boolean) {
+        if (!backgroundCheckEl) return;
+        
+        if (show) {
+            backgroundCheckEl.classList.remove("hidden");
+        } else {
+            backgroundCheckEl.classList.add("hidden");
+        }
     }
 
     // Initialize on page load
     document.addEventListener("DOMContentLoaded", async () => {
         try {
+            // Add class to body based on View Transitions support
+            if (!('startViewTransition' in document)) {
+                (document as any).body.classList.add('no-view-transitions');
+            }
+
             // Wait for Clerk to be ready before loading boxes
             await waitForClerk();
             // Start loading boxes - Clerk components handle authentication automatically
-            loadBoxes();
+            loadBoxes(false); // Use cache if available on initial load
+            
+            // Set up periodic refresh every 2 minutes (only if data changes)
+            setInterval(() => {
+                if (!isLoading && hasInitialLoad) {
+                    loadBoxes(false); // Don't force reload, only update if data changed
+                }
+            }, 120000); // 2 minutes instead of 30 seconds
         } catch (error) {
             console.error("Error initializing:", error);
+        }
+    });
+
+    // Handle page visibility change - refresh when user comes back to tab
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && !isLoading && hasInitialLoad) {
+            // Only check for updates if user was away for more than 1 minute
+            const lastUpdate = localStorage.getItem('last-boxes-update');
+            const now = Date.now();
+            const oneMinute = 60 * 1000;
+            
+            if (!lastUpdate || (now - parseInt(lastUpdate)) > oneMinute) {
+                // User switched back to this tab after being away, check for updates
+                setTimeout(() => loadBoxes(false), 500);
+                localStorage.setItem('last-boxes-update', now.toString());
+            }
         }
     });
 </script>
