@@ -207,6 +207,113 @@ import "../styles/global.css";
         animation-timing-function: ease-out;
     }
 
+    /* View Transitions for Box Details */
+    [style*="view-transition-name: box-content-"] {
+        view-transition-name: var(--box-content-name);
+    }
+
+    [style*="view-transition-name: box-title-"] {
+        view-transition-name: var(--box-title-name);
+    }
+
+    [style*="view-transition-name: box-description-"] {
+        view-transition-name: var(--box-description-name);
+    }
+
+    [style*="view-transition-name: box-meta-"] {
+        view-transition-name: var(--box-meta-name);
+    }
+
+    [style*="view-transition-name: box-items-"] {
+        view-transition-name: var(--box-items-name);
+    }
+
+    [style*="view-transition-name: box-actions-"] {
+        view-transition-name: var(--box-actions-name);
+    }
+
+    [style*="view-transition-name: view-btn-"] {
+        view-transition-name: var(--view-btn-name);
+    }
+
+    /* Enhanced ViewTransition animations for box navigation */
+    ::view-transition-old(box-content),
+    ::view-transition-new(box-content) {
+        animation-duration: 0.6s;
+        animation-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    ::view-transition-old(box-title),
+    ::view-transition-new(box-title) {
+        animation-duration: 0.7s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-delay: 0.1s;
+    }
+
+    ::view-transition-old(box-description),
+    ::view-transition-new(box-description) {
+        animation-duration: 0.5s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-delay: 0.15s;
+    }
+
+    ::view-transition-old(box-meta),
+    ::view-transition-new(box-meta) {
+        animation-duration: 0.5s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-delay: 0.2s;
+    }
+
+    ::view-transition-old(box-items),
+    ::view-transition-new(box-items) {
+        animation-duration: 0.6s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-delay: 0.25s;
+    }
+
+    /* Enhanced scale transition for box expansion */
+    @keyframes expandBox {
+        0% {
+            transform: scale(1) translateY(0);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        50% {
+            transform: scale(1.02) translateY(-4px);
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        100% {
+            transform: scale(1.05) translateY(-6px);
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    }
+
+    @keyframes shrinkBox {
+        from {
+            transform: scale(1.05) translateY(-6px);
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        to {
+            transform: scale(1) translateY(0);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+    }
+
+    /* Apply scale effect on hover for better visual feedback */
+    .box-card-expanding {
+        animation: expandBox 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        z-index: 10;
+        position: relative;
+    }
+
+    .box-card-shrinking {
+        animation: shrinkBox 0.3s ease-out forwards;
+    }
+
     /* Custom fade-in animation for QR modal */
     @keyframes fadeInScale {
         from {
@@ -592,15 +699,15 @@ import "../styles/global.css";
             boxesContainerEl.innerHTML = boxes
                 .map(
                     (box) => `
-                <div class="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all">
-                    <div class="p-5">
+                <div class="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all" data-box-id="${box.id}">
+                    <div class="p-5" style="view-transition-name: box-content-${box.id}">
                         <div class="flex items-start justify-between mb-2">
                             <div class="flex-1">
-                                <h4 class="text-lg font-bold text-gray-900">${box.name}</h4>
+                                <h4 class="text-lg font-bold text-gray-900" style="view-transition-name: box-title-${box.id}">${box.name}</h4>
                             </div>
                             ${
                                 box.room 
-                                    ? `<span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                                    ? `<span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full" style="view-transition-name: box-room-${box.id}">
                                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                         </svg>
@@ -611,16 +718,16 @@ import "../styles/global.css";
                         </div>
                         ${
                             box.description 
-                                ? `<p class="text-sm text-gray-600 mb-3 line-clamp-2">${box.description}</p>`
+                                ? `<p class="text-sm text-gray-600 mb-3 line-clamp-2" style="view-transition-name: box-description-${box.id}">${box.description}</p>`
                                 : ''
                         }
-                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                        <div class="flex items-center text-sm text-gray-500 mb-3" style="view-transition-name: box-meta-${box.id}">
                             <span class="font-medium">${box.items?.length || 0} items</span>
                             <span class="mx-2">•</span>
                             <span class="text-xs">${new Date(box.createdAt).toLocaleDateString()}</span>
                         </div>
 
-                        <div class="flex flex-wrap gap-1 mb-3">
+                        <div class="flex flex-wrap gap-1 mb-3" style="view-transition-name: box-items-${box.id}">
                             ${
                                 box.items && box.items.length > 0
                                     ? box.items
@@ -640,8 +747,8 @@ import "../styles/global.css";
                             }
                         </div>
                     </div>
-                    <div class="border-t border-gray-100 bg-gray-50 p-3 rounded-b-xl flex justify-between items-center">
-                        <button data-id="${box.id}" data-action="view" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                    <div class="border-t border-gray-100 bg-gray-50 p-3 rounded-b-xl flex justify-between items-center" style="view-transition-name: box-actions-${box.id}">
+                        <button data-id="${box.id}" data-action="view" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-all duration-200 transform hover:scale-105" style="view-transition-name: view-btn-${box.id}">
                             View details
                         </button>
                         <div class="flex gap-2">
@@ -660,13 +767,13 @@ import "../styles/global.css";
 
             // Add event listeners to box buttons
             boxesContainerEl.querySelectorAll('[data-action]').forEach(button => {
-                button.addEventListener('click', () => {
+                button.addEventListener('click', (e) => {
                     const boxId = button.getAttribute('data-id');
                     const action = button.getAttribute('data-action');
                     
                     if (action === 'view' && boxId) {
-                        // Navigate to the box details page
-                        window.location.href = `/box/${boxId}`;
+                        // Use View Transitions for navigation if available
+                        navigateToBoxDetails(boxId, e.target as HTMLElement);
                     } else if (action === 'qr' && boxId) {
                         showBoxQR(boxId);
                     } else if (action === 'delete') {
@@ -703,6 +810,55 @@ import "../styles/global.css";
             sortedRooms.map(room => 
                 `<option value="${room}" ${room === currentValue ? 'selected' : ''}>${room}</option>`
             ).join('');
+    }
+
+    // Navigate to box details with View Transitions
+    function navigateToBoxDetails(boxId: string, clickedElement: HTMLElement) {
+        const boxCard = clickedElement.closest('[data-box-id]') as HTMLElement;
+        
+        if ('startViewTransition' in document && boxCard) {
+            // Add expanding animation class for immediate visual feedback
+            boxCard.classList.add('box-card-expanding');
+            
+            // Use View Transitions API for smooth navigation
+            const transition = document.startViewTransition(() => {
+                // This function will be called when the transition is ready
+                // Add state to help detect back navigation
+                history.pushState({ fromDashboard: true }, '', `/box/${boxId}`);
+                window.location.href = `/box/${boxId}`;
+            });
+
+            // Handle the transition promise
+            transition.ready.then(() => {
+                // Transition has started, clean up
+                setTimeout(() => {
+                    boxCard.classList.remove('box-card-expanding');
+                }, 100);
+            }).catch((error) => {
+                // Fallback if View Transition fails
+                console.warn('View Transition failed:', error);
+                boxCard.classList.remove('box-card-expanding');
+                window.location.href = `/box/${boxId}`;
+            });
+
+            // Fallback timeout in case the transition gets stuck
+            setTimeout(() => {
+                if (boxCard.classList.contains('box-card-expanding')) {
+                    boxCard.classList.remove('box-card-expanding');
+                    window.location.href = `/box/${boxId}`;
+                }
+            }, 1000);
+        } else {
+            // Fallback for browsers without View Transitions support
+            if (boxCard) {
+                boxCard.classList.add('box-card-expanding');
+                setTimeout(() => {
+                    window.location.href = `/box/${boxId}`;
+                }, 250);
+            } else {
+                window.location.href = `/box/${boxId}`;
+            }
+        }
     }
 
     // Filter boxes by selected room

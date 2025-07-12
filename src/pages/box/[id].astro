@@ -49,7 +49,21 @@ try {
                 </div>
             ) : box ? (
                 <!-- Box Details -->
-                <div class="max-w-2xl mx-auto">
+                <div class="max-w-2xl mx-auto box-details-container">
+                    <!-- Back Navigation Button -->
+                    <div class="flex items-center mb-6">
+                        <button 
+                            id="back-to-dashboard" 
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 transition-all duration-200 transform hover:scale-105 hover:-translate-y-0.5 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            style="view-transition-name: back-btn-{id}"
+                        >
+                            <svg class="w-4 h-4 mr-2 transition-transform duration-200 group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            Back to Dashboard
+                        </button>
+                    </div>
+                    
                     <!-- Header -->
                     <div class="text-center mb-8">
                         <div class="flex justify-center mb-4">
@@ -59,9 +73,9 @@ try {
                                 </svg>
                             </div>
                         </div>
-                        <h1 class="text-3xl font-bold text-gray-900 mb-2">{box.name}</h1>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2" style="view-transition-name: box-title-{id}">{box.name}</h1>
                         {box.room && (
-                            <div class="inline-flex items-center bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full mb-2">
+                            <div class="inline-flex items-center bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full mb-2" style="view-transition-name: box-room-{id}">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                 </svg>
@@ -69,13 +83,13 @@ try {
                             </div>
                         )}
                         {box.description && (
-                            <p class="text-gray-600 mb-2">{box.description}</p>
+                            <p class="text-gray-600 mb-2" style="view-transition-name: box-description-{id}">{box.description}</p>
                         )}
                         <p class="text-gray-500">Box Contents</p>
                     </div>
 
                     <!-- Box Content -->
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden" style="view-transition-name: box-content-{id}">
                         <!-- Box Info -->
                         <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 border-b">
                             <div class="flex items-center justify-between">
@@ -94,7 +108,7 @@ try {
                                     {box.description && (
                                         <p class="text-sm text-gray-700 mt-2 bg-white/50 rounded p-2">{box.description}</p>
                                     )}
-                                    <p class="text-sm text-gray-600 mt-1">
+                                    <p class="text-sm text-gray-600 mt-1" style="view-transition-name: box-meta-{id}">
                                         Created: {new Date(box.createdAt).toLocaleDateString()}
                                     </p>
                                 </div>
@@ -107,7 +121,7 @@ try {
                         </div>
 
                         <!-- Items List -->
-                        <div class="p-6">
+                        <div class="p-6" style="view-transition-name: box-items-{id}">
                             <div class="flex items-center justify-between mb-4">
                                 <h3 class="text-lg font-semibold text-gray-900 flex items-center">
                                     <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,6 +248,7 @@ try {
     const boxId = window.location.pathname.split('/').pop();
     
     // DOM elements
+    const backToDashboardBtn = document.getElementById('back-to-dashboard');
     const addItemToggle = document.getElementById('add-item-toggle');
     const addItemForm = document.getElementById('add-item-form');
     const newItemInput = document.getElementById('new-item-input');
@@ -241,6 +256,95 @@ try {
     const cancelAddBtn = document.getElementById('cancel-add-btn');
     const itemsContainer = document.getElementById('items-container');
     const statusMessage = document.getElementById('status-message');
+
+    // Back to dashboard functionality with ViewTransitions
+    backToDashboardBtn?.addEventListener('click', () => {
+        navigateBackToDashboard();
+    });
+
+    // Handle browser back button for smooth transitions
+    window.addEventListener('popstate', (event) => {
+        // Check if we're going back to dashboard
+        if (document.referrer.includes('/dashboard') || event.state?.fromDashboard) {
+            // Use ViewTransition if available
+            if ('startViewTransition' in document) {
+                const boxContainer = document.querySelector('.box-details-container') as HTMLElement;
+                if (boxContainer) {
+                    boxContainer.classList.add('box-details-shrinking');
+                }
+                
+                const transition = document.startViewTransition(() => {
+                    // Let the browser handle the navigation
+                    history.back();
+                });
+                
+                transition.ready.catch(() => {
+                    // Fallback
+                    history.back();
+                });
+            } else {
+                // Fallback for browsers without ViewTransitions
+                history.back();
+            }
+        }
+    });
+
+    // Navigate back to dashboard with reverse ViewTransition effect
+    function navigateBackToDashboard() {
+        const boxContainer = document.querySelector('.box-details-container') as HTMLElement;
+        
+        if ('startViewTransition' in document) {
+            // Add shrinking animation class for immediate visual feedback
+            if (boxContainer) {
+                boxContainer.classList.add('box-details-shrinking');
+            }
+            
+            // Use View Transitions API for smooth back navigation
+            const transition = document.startViewTransition(() => {
+                // Navigate back to dashboard
+                window.location.href = '/dashboard';
+            });
+
+            // Handle the transition promise
+            transition.ready.then(() => {
+                console.log('Back transition started');
+                // Clean up animation class
+                setTimeout(() => {
+                    if (boxContainer) {
+                        boxContainer.classList.remove('box-details-shrinking');
+                    }
+                }, 100);
+            }).catch((error) => {
+                // Fallback if View Transition fails
+                console.warn('View Transition failed:', error);
+                if (boxContainer) {
+                    boxContainer.classList.remove('box-details-shrinking');
+                }
+                window.location.href = '/dashboard';
+            });
+
+            // Fallback timeout in case the transition gets stuck
+            setTimeout(() => {
+                // Check if we're still on the same page
+                if (window.location.pathname.includes('/box/')) {
+                    if (boxContainer) {
+                        boxContainer.classList.remove('box-details-shrinking');
+                    }
+                    window.location.href = '/dashboard';
+                }
+            }, 1000);
+        } else {
+            // Fallback for browsers without View Transitions support
+            if (boxContainer) {
+                boxContainer.classList.add('box-details-shrinking');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 250);
+            } else {
+                window.location.href = '/dashboard';
+            }
+        }
+    }
 
     // Show/hide add item form
     addItemToggle?.addEventListener('click', () => {
@@ -558,5 +662,92 @@ try {
 </script>
 
 <style>
-    /* Custom animations and styles can be added here if needed */
+    /* ViewTransitions enhancements */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 0.3s;
+    }
+
+    /* Back button transition */
+    [style*="view-transition-name: back-btn-"]::view-transition-old([style*="view-transition-name: back-btn-"]),
+    [style*="view-transition-name: back-btn-"]::view-transition-new([style*="view-transition-name: back-btn-"]) {
+        animation-duration: 0.3s;
+        animation-timing-function: ease-out;
+    }
+
+    /* Back button hover effects */
+    #back-to-dashboard {
+        position: relative;
+        overflow: hidden;
+    }
+
+    #back-to-dashboard:hover svg {
+        transform: translateX(-2px);
+    }
+
+    #back-to-dashboard:active {
+        transform: scale(0.98) translateY(0px);
+    }
+
+    /* Custom transitions for the box elements */
+    [style*="view-transition-name: box-content-"]::view-transition-old([style*="view-transition-name: box-content-"]),
+    [style*="view-transition-name: box-content-"]::view-transition-new([style*="view-transition-name: box-content-"]) {
+        animation-duration: 0.4s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [style*="view-transition-name: box-title-"]::view-transition-old([style*="view-transition-name: box-title-"]),
+    [style*="view-transition-name: box-title-"]::view-transition-new([style*="view-transition-name: box-title-"]) {
+        animation-duration: 0.5s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Smooth animation for elements that appear/disappear */
+    [style*="view-transition-name: box-items-"]::view-transition-new([style*="view-transition-name: box-items-"]) {
+        animation: fadeSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes fadeSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Fallback animations for browsers without View Transitions */
+    @media (prefers-reduced-motion: no-preference) {
+        .box-details-container {
+            animation: pageSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .box-details-shrinking {
+            animation: pageSlideOut 0.3s cubic-bezier(0.4, 0, 0.6, 1) forwards !important;
+        }
+
+        @keyframes pageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes pageSlideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.9);
+            }
+        }
+    }
 </style>
