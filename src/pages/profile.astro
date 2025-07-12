@@ -1,0 +1,767 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { SignedIn, SignedOut } from "@clerk/astro/components";
+import "../styles/global.css";
+---
+
+<Layout title="Profile" currentPage="profile">
+    <SignedOut>
+        <div class="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-900 mb-4">
+                    Access Denied
+                </h1>
+                <p class="text-gray-600 mb-4">
+                    You need to be signed in to access this page.
+                </p>
+                <a
+                    href="/"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                    Go to Home
+                </a>
+            </div>
+        </div>
+    </SignedOut>
+
+    <SignedIn>
+        <main class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-12">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-4">User Profile</h1>
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        Manage your account settings and API tokens for programmatic access.
+                    </p>
+                </div>
+
+                <!-- Status Message -->
+                <div
+                    id="status"
+                    class="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200 shadow-sm hidden"
+                >
+                    <div class="flex items-center">
+                        <svg
+                            class="w-5 h-5 mr-2 text-blue-500"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            ></path>
+                        </svg>
+                        <div class="text-blue-800 font-medium" id="status-message">
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loading" class="flex justify-center items-center py-20">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+
+                <!-- User Info Section -->
+                <div class="bg-white shadow-sm rounded-lg p-6 border border-gray-100 mb-8">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                        <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Account Information
+                    </h2>
+                    <div id="user-info" class="space-y-3">
+                        <!-- User info will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- API Tokens Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Create API Token Form -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white shadow-sm rounded-lg p-6 border border-gray-100 sticky top-4">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                                <svg class="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3a1 1 0 011-1h2.586l6.414-6.414a6 6 0 017.743-5.743L15 7z"></path>
+                                </svg>
+                                Create API Token
+                            </h2>
+
+                            <form id="create-token-form" class="space-y-4">
+                                <div>
+                                    <label for="token-name" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Token Name <span class="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="token-name"
+                                        name="name"
+                                        required
+                                        maxlength="100"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="e.g., My Integration, Script Token"
+                                    />
+                                    <p class="text-xs text-gray-500 mt-1">Choose a descriptive name to identify this token</p>
+                                </div>
+                                
+                                <div>
+                                    <label for="token-expires" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Expiration (optional)
+                                    </label>
+                                    <select id="token-expires" name="expires" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Never expires</option>
+                                        <option value="7">7 days</option>
+                                        <option value="30">30 days</option>
+                                        <option value="90">90 days</option>
+                                        <option value="365">1 year</option>
+                                    </select>
+                                    <p class="text-xs text-gray-500 mt-1">Tokens without expiration are more convenient but less secure</p>
+                                </div>
+                                
+                                <button
+                                    type="submit"
+                                    id="submit-create-token"
+                                    class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-sm hover:shadow disabled:bg-gray-400 disabled:shadow-none"
+                                >
+                                    Create API Token
+                                </button>
+                            </form>
+
+                            <!-- API Documentation Link -->
+                            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                                <h3 class="text-sm font-medium text-gray-900 mb-2">API Documentation</h3>
+                                <p class="text-xs text-gray-600 mb-3">Learn how to use API tokens to access your data programmatically.</p>
+                                <div class="space-y-2">
+                                    <div class="text-xs">
+                                        <span class="font-medium">Base URL:</span>
+                                        <code class="bg-gray-200 px-1 rounded" id="api-base-url">loading...</code>
+                                    </div>
+                                    <div class="text-xs">
+                                        <span class="font-medium">Authorization:</span>
+                                        <code class="bg-gray-200 px-1 rounded">Bearer YOUR_API_TOKEN</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API Tokens List -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white shadow-sm rounded-lg p-4 border border-gray-100 mb-6">
+                            <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                                <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3a1 1 0 011-1h2.586l6.414-6.414a6 6 0 017.743-5.743L15 7z"></path>
+                                </svg>
+                                Your API Tokens
+                            </h3>
+                        </div>
+                        
+                        <div id="tokens-container" class="space-y-4">
+                            <!-- API tokens will be loaded here -->
+                        </div>
+
+                        <!-- Empty State -->
+                        <div id="tokens-empty" class="text-center py-16 hidden">
+                            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3a1 1 0 011-1h2.586l6.414-6.414a6 6 0 017.743-5.743L15 7z"></path>
+                            </svg>
+                            <h3 class="text-xl font-medium text-gray-900 mb-2">No API tokens yet</h3>
+                            <p class="text-gray-600 mb-6">Create your first API token to start accessing the API programmatically</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Token Modal -->
+            <div id="new-token-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+                <div class="relative top-20 mx-auto p-5 border shadow-lg rounded-lg bg-white max-w-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">🎉 API Token Created!</h3>
+                        <button id="new-token-modal-close" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <h4 class="text-yellow-800 font-medium mb-2">⚠️ Important Security Notice</h4>
+                            <p class="text-yellow-700 text-sm">This is the only time you'll see this token. Please copy it now and store it securely.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Your new API token:</label>
+                            <div class="flex items-center space-x-2">
+                                <input
+                                    type="text"
+                                    id="new-token-value"
+                                    readonly
+                                    class="flex-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg font-mono text-sm"
+                                />
+                                <button
+                                    id="copy-token-btn"
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center"
+                                >
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h4 class="text-blue-800 font-medium mb-2">Usage Example</h4>
+                            <div class="text-blue-700 text-sm space-y-2">
+                                <p>Use this token in your API requests:</p>
+                                <code class="block bg-blue-100 p-2 rounded text-xs">
+curl -H "Authorization: Bearer YOUR_TOKEN" <span id="example-api-url">API_URL</span>/api/boxes/list
+                                </code>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button
+                                id="new-token-done-btn"
+                                class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                            >
+                                I've saved my token
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Confirmation Modal -->
+            <div id="delete-token-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+                    <div class="mt-3 text-center">
+                        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">Delete API Token</h3>
+                        <div class="mt-2 px-7 py-3">
+                            <p class="text-sm text-gray-500" id="delete-token-message">
+                                Are you sure you want to delete this API token? This action cannot be undone and any applications using this token will stop working.
+                            </p>
+                        </div>
+                        <div class="items-center px-4 py-3">
+                            <button id="delete-token-confirm-btn" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                Delete
+                            </button>
+                            <button id="delete-token-cancel-btn" class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-24 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </SignedIn>
+</Layout>
+
+<script>
+class ProfilePage {
+    apiUrl: string;
+    currentTokenId: string | null;
+
+    constructor() {
+        this.apiUrl = import.meta.env.PUBLIC_BACKEND_URL || 'http://localhost:8080';
+        this.currentTokenId = null;
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.waitForClerkAndLoad();
+        
+        // Set API base URL in documentation
+        const apiBaseUrlElement = document.getElementById('api-base-url');
+        const exampleApiUrlElement = document.getElementById('example-api-url');
+        if (apiBaseUrlElement) {
+            apiBaseUrlElement.textContent = this.apiUrl;
+        }
+        if (exampleApiUrlElement) {
+            exampleApiUrlElement.textContent = this.apiUrl;
+        }
+    }
+
+    async waitForClerkAndLoad() {
+        // First wait for Clerk to be available
+        let attempts = 0;
+        const maxAttempts = 50; // Wait up to 5 seconds
+        
+        while (attempts < maxAttempts) {
+            if (typeof window !== 'undefined' && (window as any).Clerk && (window as any).Clerk.loaded) {
+                break;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
+            attempts++;
+        }
+        
+        if (attempts >= maxAttempts) {
+            this.updateStatus('Authentication service not available. Please refresh the page.', 'error');
+            this.showLoading(false);
+            return;
+        }
+        
+        // Now check if user is signed in
+        attempts = 0;
+        while (attempts < maxAttempts) {
+            if ((window as any).Clerk.user) {
+                this.loadUserProfile();
+                this.loadAPITokens();
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
+            attempts++;
+        }
+        
+        // User is not signed in
+        this.updateStatus('Please sign in to access your profile.', 'error');
+        this.showLoading(false);
+    }
+
+    bindEvents() {
+        // Create token form
+        const form = document.getElementById('create-token-form') as HTMLFormElement;
+        form?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.createAPIToken();
+        });
+
+        // Modal events
+        document.getElementById('new-token-modal-close')?.addEventListener('click', () => {
+            this.hideNewTokenModal();
+        });
+
+        document.getElementById('new-token-done-btn')?.addEventListener('click', () => {
+            this.hideNewTokenModal();
+        });
+
+        document.getElementById('copy-token-btn')?.addEventListener('click', () => {
+            this.copyTokenToClipboard();
+        });
+
+        // Delete token modal events
+        document.getElementById('delete-token-modal-close')?.addEventListener('click', () => {
+            this.hideDeleteTokenModal();
+        });
+
+        document.getElementById('delete-token-cancel-btn')?.addEventListener('click', () => {
+            this.hideDeleteTokenModal();
+        });
+
+        document.getElementById('delete-token-confirm-btn')?.addEventListener('click', () => {
+            this.performDeleteToken();
+        });
+    }
+
+    async getAuthToken(): Promise<string | null> {
+        try {
+            if (typeof window !== 'undefined' && (window as any).Clerk && (window as any).Clerk.session) {
+                const token = await (window as any).Clerk.session.getToken();
+                return token;
+            }
+            return null;
+        } catch (error) {
+            console.error('❌ Error getting auth token:', error);
+            return null;
+        }
+    }
+
+    async loadUserProfile() {
+        try {
+            const userInfoDiv = document.getElementById('user-info');
+            if (!userInfoDiv) return;
+
+            const user = (window as any).Clerk.user;
+            if (!user) return;
+
+            userInfoDiv.innerHTML = `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="space-y-1">
+                        <span class="text-sm font-medium text-gray-500">User ID:</span>
+                        <p class="text-sm text-gray-900 font-mono break-all">${this.escapeHtml(user.id)}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-sm font-medium text-gray-500">Email:</span>
+                        <p class="text-sm text-gray-900">${this.escapeHtml(user.primaryEmailAddress?.emailAddress || 'N/A')}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-sm font-medium text-gray-500">Name:</span>
+                        <p class="text-sm text-gray-900">${this.escapeHtml(user.fullName || 'N/A')}</p>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-sm font-medium text-gray-500">Joined:</span>
+                        <p class="text-sm text-gray-900">${new Date(user.createdAt).toLocaleDateString()}</p>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error loading user profile:', error);
+        }
+    }
+
+    async loadAPITokens() {
+        try {
+            this.showLoading(true);
+            this.updateStatus('Loading API tokens...');
+
+            const token = await this.getAuthToken();
+            
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/tokens`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ API Error:', response.status, errorText);
+                throw new Error(`Failed to fetch API tokens: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const tokens = data.data?.tokens || [];
+            
+            this.renderAPITokens(tokens);
+            this.updateStatus('', 'success');
+        } catch (error) {
+            console.error('❌ Error loading API tokens:', error);
+            this.updateStatus(`Failed to load API tokens: ${(error as Error).message}`, 'error');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    renderAPITokens(tokens: any[]) {
+        const container = document.getElementById('tokens-container');
+        const emptyState = document.getElementById('tokens-empty');
+
+        if (!tokens || tokens.length === 0) {
+            if (container) container.innerHTML = '';
+            if (emptyState) emptyState.classList.remove('hidden');
+            return;
+        }
+
+        if (emptyState) emptyState.classList.add('hidden');
+        if (container) {
+            const tokenCards = tokens.map(token => {
+                const isExpired = token.expiresAt && new Date(token.expiresAt) < new Date();
+                const isActive = token.isActive && !isExpired;
+                
+                return `
+                <div class="bg-white border ${isActive ? 'border-gray-200' : 'border-red-200'} rounded-lg p-6 hover:shadow-lg transition-all">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <h4 class="text-lg font-semibold text-gray-900">${this.escapeHtml(token.name)}</h4>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    isActive 
+                                        ? 'bg-green-100 text-green-800' 
+                                        : 'bg-red-100 text-red-800'
+                                }">
+                                    ${isActive ? '🟢 Active' : isExpired ? '🔴 Expired' : '⏸️ Inactive'}
+                                </span>
+                            </div>
+                            <div class="space-y-1 text-sm text-gray-600">
+                                <div><span class="font-medium">Prefix:</span> <code class="bg-gray-100 px-1 rounded">${this.escapeHtml(token.prefix)}***</code></div>
+                                <div><span class="font-medium">Created:</span> ${new Date(token.createdAt).toLocaleDateString()}</div>
+                                ${token.lastUsedAt ? `<div><span class="font-medium">Last used:</span> ${new Date(token.lastUsedAt).toLocaleDateString()}</div>` : '<div><span class="font-medium">Last used:</span> Never</div>'}
+                                ${token.expiresAt ? `<div><span class="font-medium">Expires:</span> ${new Date(token.expiresAt).toLocaleDateString()}</div>` : '<div><span class="font-medium">Expires:</span> Never</div>'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-end space-x-2 pt-4 border-t border-gray-100">
+                        <button 
+                            class="toggle-token-btn text-sm px-3 py-1 rounded-md transition-colors ${
+                                token.isActive 
+                                    ? 'text-orange-600 hover:text-orange-800 border border-orange-300 hover:bg-orange-50' 
+                                    : 'text-green-600 hover:text-green-800 border border-green-300 hover:bg-green-50'
+                            }"
+                            data-token-id="${token.id}"
+                            data-current-status="${token.isActive}"
+                        >
+                            ${token.isActive ? '⏸️ Deactivate' : '▶️ Activate'}
+                        </button>
+                        <button 
+                            class="delete-token-btn text-white bg-red-600 hover:bg-red-700 font-medium text-sm px-3 py-1 rounded-md transition-colors border border-red-600"
+                            data-token-id="${token.id}"
+                            data-token-name="${this.escapeHtml(token.name)}"
+                        >
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>`;
+            });
+            
+            container.innerHTML = tokenCards.join('');
+
+            // Bind button events
+            container.querySelectorAll('.toggle-token-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const tokenId = btn.getAttribute('data-token-id');
+                    const currentStatus = btn.getAttribute('data-current-status') === 'true';
+                    if (tokenId) this.toggleToken(tokenId, !currentStatus);
+                });
+            });
+
+            container.querySelectorAll('.delete-token-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const tokenId = btn.getAttribute('data-token-id');
+                    const tokenName = btn.getAttribute('data-token-name');
+                    if (tokenId && tokenName) this.showDeleteTokenModal(tokenId, tokenName);
+                });
+            });
+        }
+    }
+
+    async createAPIToken() {
+        const form = document.getElementById('create-token-form') as HTMLFormElement;
+        const submitBtn = document.getElementById('submit-create-token') as HTMLButtonElement;
+
+        if (!form) return;
+
+        try {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+            }
+
+            const token = await this.getAuthToken();
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            const formData = new FormData(form);
+            const tokenData: any = {
+                name: (formData.get('name') as string)?.trim() || ''
+            };
+
+            // Handle expiration
+            const expiresInDays = formData.get('expires') as string;
+            if (expiresInDays) {
+                const expiresAt = new Date();
+                expiresAt.setDate(expiresAt.getDate() + parseInt(expiresInDays));
+                tokenData.expiresAt = expiresAt.toISOString();
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/tokens`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(tokenData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to create API token');
+            }
+
+            const data = await response.json();
+            this.showNewTokenModal(data.data.rawToken);
+            form.reset();
+            this.loadAPITokens();
+
+        } catch (error) {
+            console.error('Error creating API token:', error);
+            this.updateStatus((error as Error).message || 'Failed to create API token', 'error');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create API Token';
+            }
+        }
+    }
+
+    async toggleToken(tokenId: string, isActive: boolean) {
+        try {
+            const token = await this.getAuthToken();
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/tokens/update?tokenId=${tokenId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ isActive })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update API token');
+            }
+
+            this.updateStatus(`Token ${isActive ? 'activated' : 'deactivated'} successfully!`, 'success');
+            this.loadAPITokens();
+
+        } catch (error) {
+            console.error('Error toggling token:', error);
+            this.updateStatus((error as Error).message || 'Failed to update token', 'error');
+        }
+    }
+
+    showDeleteTokenModal(tokenId: string, tokenName: string) {
+        const modal = document.getElementById('delete-token-modal');
+        const message = document.getElementById('delete-token-message');
+
+        if (!modal || !message) return;
+
+        this.currentTokenId = tokenId;
+        message.textContent = `Are you sure you want to delete "${tokenName}"? This action cannot be undone and any applications using this token will stop working.`;
+        modal.classList.remove('hidden');
+    }
+
+    hideDeleteTokenModal() {
+        const modal = document.getElementById('delete-token-modal');
+        modal?.classList.add('hidden');
+        this.currentTokenId = null;
+    }
+
+    async performDeleteToken() {
+        if (!this.currentTokenId) return;
+
+        try {
+            const token = await this.getAuthToken();
+            if (!token) {
+                throw new Error('No authentication token available');
+            }
+
+            const response = await fetch(`${this.apiUrl}/api/tokens/delete?tokenId=${this.currentTokenId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to delete API token');
+            }
+
+            this.hideDeleteTokenModal();
+            this.updateStatus('API token deleted successfully!', 'success');
+            this.loadAPITokens();
+
+        } catch (error) {
+            console.error('Error deleting token:', error);
+            this.updateStatus((error as Error).message || 'Failed to delete token', 'error');
+        }
+    }
+
+    showNewTokenModal(rawToken: string) {
+        const modal = document.getElementById('new-token-modal');
+        const tokenInput = document.getElementById('new-token-value') as HTMLInputElement;
+
+        if (!modal || !tokenInput) return;
+
+        tokenInput.value = rawToken;
+        modal.classList.remove('hidden');
+    }
+
+    hideNewTokenModal() {
+        const modal = document.getElementById('new-token-modal');
+        modal?.classList.add('hidden');
+    }
+
+    async copyTokenToClipboard() {
+        const tokenInput = document.getElementById('new-token-value') as HTMLInputElement;
+        const copyBtn = document.getElementById('copy-token-btn');
+
+        if (!tokenInput || !copyBtn) return;
+
+        try {
+            await navigator.clipboard.writeText(tokenInput.value);
+            
+            // Visual feedback
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '✅ Copied!';
+            copyBtn.classList.add('bg-green-600');
+            copyBtn.classList.remove('bg-blue-600');
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+                copyBtn.classList.remove('bg-green-600');
+                copyBtn.classList.add('bg-blue-600');
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Failed to copy token:', error);
+            // Fallback for older browsers
+            tokenInput.select();
+            document.execCommand('copy');
+        }
+    }
+
+    showLoading(show: boolean) {
+        const loading = document.getElementById('loading');
+        if (loading) {
+            loading.style.display = show ? 'flex' : 'none';
+        }
+    }
+
+    updateStatus(message: string, type: string = 'info') {
+        const statusEl = document.getElementById('status');
+        const messageEl = document.getElementById('status-message');
+        
+        if (!statusEl || !messageEl) return;
+
+        if (!message) {
+            statusEl.classList.add('hidden');
+            return;
+        }
+
+        statusEl.classList.remove('hidden');
+        
+        // Update styles based on type
+        const colors: {[key: string]: string} = {
+            info: 'bg-blue-50 border-blue-200 text-blue-800',
+            success: 'bg-green-50 border-green-200 text-green-800',
+            error: 'bg-red-50 border-red-200 text-red-800',
+            loading: 'bg-yellow-50 border-yellow-200 text-yellow-800'
+        };
+
+        statusEl.className = `mb-6 p-4 rounded-lg shadow-sm ${colors[type] || colors.info}`;
+        messageEl.textContent = message;
+    }
+
+    escapeHtml(text: string): string {
+        const map: { [key: string]: string } = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new ProfilePage();
+});
+</script>
