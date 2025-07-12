@@ -156,17 +156,9 @@
         // Load compartments
         async function loadCompartments() {
             try {
-                // Wait for Clerk to be ready
-                await waitForClerk();
+                const token = await getAuthToken();
                 
-                const token = await window.Clerk.session.getToken();
-                if (!token) {
-                    console.log('No authentication token available');
-                    return;
-                }
-
-                const apiUrl = 'http://localhost:8080'; // Use env variable in production
-                const response = await fetch(`${apiUrl}/api/compartments/list`, {
+                const response = await fetch(`${import.meta.env.PUBLIC_BACKEND_URL}/api/compartments/list`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -186,11 +178,26 @@
             }
         }
 
+        // Get auth token from Clerk
+        async function getAuthToken() {
+            // Wait for Clerk to be available and loaded
+            await waitForClerk();
+            
+            if (typeof window !== 'undefined' && window.Clerk) {
+                const session = window.Clerk.session;
+                if (session) {
+                    return await session.getToken();
+                }
+            }
+            throw new Error("User not authenticated or no active session");
+        }
+
+        // Wait for Clerk to be properly loaded
         async function waitForClerk() {
             return new Promise((resolve) => {
                 const checkClerk = () => {
-                    if (window.Clerk && window.Clerk.session) {
-                        resolve();
+                    if (typeof window !== 'undefined' && window.Clerk && window.Clerk.loaded) {
+                        resolve(true);
                     } else {
                         setTimeout(checkClerk, 100);
                     }

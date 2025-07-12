@@ -144,11 +144,6 @@ import "../styles/global.css";
 </Layout>
 
 <script>
-    import { Clerk } from "@clerk/clerk-js";
-
-    // Initialize Clerk
-    const clerk = new Clerk(import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY);
-
     // DOM elements
     const statusEl = document.getElementById("status");
     const loadingEl = document.getElementById("loading");
@@ -265,14 +260,30 @@ import "../styles/global.css";
 
     // Get auth token from Clerk
     async function getAuthToken() {
-        await clerk.load();
-        if (!clerk.user) {
-            throw new Error("User not authenticated");
+        // Wait for Clerk to be available and loaded
+        await waitForClerk();
+        
+        if (typeof window !== 'undefined' && window.Clerk) {
+            const session = window.Clerk.session;
+            if (session) {
+                return await session.getToken();
+            }
         }
-        if (!clerk.session) {
-            throw new Error("No active session");
-        }
-        return await clerk.session.getToken();
+        throw new Error("User not authenticated or no active session");
+    }
+
+    // Wait for Clerk to be properly loaded
+    async function waitForClerk() {
+        return new Promise((resolve) => {
+            const checkClerk = () => {
+                if (typeof window !== 'undefined' && window.Clerk && window.Clerk.loaded) {
+                    resolve(true);
+                } else {
+                    setTimeout(checkClerk, 100);
+                }
+            };
+            checkClerk();
+        });
     }
 
 
@@ -638,18 +649,15 @@ import "../styles/global.css";
     }
 
     // Initialize on page load
-    document.addEventListener("DOMContentLoaded", () => {
-        // Start loading boxes
-        clerk
-            .load()
-            .then(() => {
-                if (clerk.user) {
-                    loadBoxes();
-                }
-            })
-            .catch((error) => {
-                console.error("Error initializing Clerk:", error);
-                updateStatus("Error initializing authentication", "error");
-            });
+    document.addEventListener("DOMContentLoaded", async () => {
+        try {
+            // Wait for Clerk to be ready before loading boxes
+            await waitForClerk();
+            // Start loading boxes - Clerk components handle authentication automatically
+            loadBoxes();
+        } catch (error) {
+            console.error("Error initializing:", error);
+            updateStatus("Error initializing authentication. Please refresh the page.", "error");
+        }
     });
 </script>

@@ -230,11 +230,6 @@ try {
 </Layout>
 
 <script>
-    import { Clerk } from "@clerk/clerk-js";
-
-    // Initialize Clerk
-    const clerk = new Clerk(import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY);
-    
     // Get box ID from URL
     const boxId = window.location.pathname.split('/').pop();
     
@@ -274,14 +269,30 @@ try {
 
     // Get auth token from Clerk
     async function getAuthToken() {
-        await clerk.load();
-        if (!clerk.user) {
-            throw new Error("User not authenticated");
+        // Wait for Clerk to be available and loaded
+        await waitForClerk();
+        
+        if (typeof window !== 'undefined' && window.Clerk) {
+            const session = window.Clerk.session;
+            if (session) {
+                return await session.getToken();
+            }
         }
-        if (!clerk.session) {
-            throw new Error("No active session");
-        }
-        return await clerk.session.getToken();
+        throw new Error("User not authenticated or no active session");
+    }
+
+    // Wait for Clerk to be properly loaded
+    async function waitForClerk() {
+        return new Promise((resolve) => {
+            const checkClerk = () => {
+                if (typeof window !== 'undefined' && window.Clerk && window.Clerk.loaded) {
+                    resolve(true);
+                } else {
+                    setTimeout(checkClerk, 100);
+                }
+            };
+            checkClerk();
+        });
     }
 
     // Add new item to the box
@@ -357,8 +368,8 @@ try {
         if (!itemsContainer) return;
         
         if (items.length > 0) {
-            // Check if user is signed in
-            const isSignedIn = clerk?.user ? true : false;
+            // Check if user is signed in using Clerk directly
+            const isSignedIn = typeof window !== 'undefined' && window.Clerk && window.Clerk.user;
             
             // Clear container first
             itemsContainer.innerHTML = '';
@@ -521,12 +532,15 @@ try {
     }
 
     // Initialize page on load
-    document.addEventListener('DOMContentLoaded', () => {
-        // Wait for Clerk to load
-        clerk.load().then(() => {
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Wait for Clerk to be ready
+            await waitForClerk();
             // Add event listeners to initial delete buttons (server-rendered)
             attachInitialDeleteListeners();
-        });
+        } catch (error) {
+            console.error("Error initializing:", error);
+        }
     });
 
     // Attach event listeners to initially rendered delete buttons
