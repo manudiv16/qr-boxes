@@ -763,6 +763,37 @@ import "../styles/global.css";
         }
     });
 
+    // Load compartments event (for the CreateBoxForm component)
+    document.addEventListener("load-compartments", async (e) => {
+        try {
+            const token = await getAuthToken();
+            const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/compartments/list`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to load compartments: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const compartments = data.data?.compartments || [];
+
+            // Dispatch compartments loaded event
+            document.dispatchEvent(new CustomEvent("compartments-loaded", {
+                detail: { compartments }
+            }));
+        } catch (error) {
+            console.error("Error loading compartments:", error);
+            // Dispatch empty compartments in case of error
+            document.dispatchEvent(new CustomEvent("compartments-loaded", {
+                detail: { compartments: [] }
+            }));
+        }
+    });
+
     downloadQrBtn?.addEventListener('click', () => {
         const img = qrContent?.querySelector("img");
         if (img) {
@@ -1479,6 +1510,11 @@ import "../styles/global.css";
                 modalContent.classList.remove('scale-95', 'opacity-0');
                 modalContent.classList.add('scale-100', 'opacity-100');
             }, 10);
+
+            // Trigger compartments loading when modal opens
+            setTimeout(() => {
+                document.dispatchEvent(new CustomEvent('load-compartments'));
+            }, 100);
         }
     }
 

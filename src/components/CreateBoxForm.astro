@@ -140,6 +140,7 @@
         // Load compartments
         async function loadCompartments() {
             try {
+                console.log('Loading compartments...');
                 const token = await getAuthToken();
                 
                 const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/compartments/list`, {
@@ -151,11 +152,15 @@
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Compartments API response:', data);
                     // Extract compartments from the nested response structure
                     compartments = data.data?.compartments || data.compartments || [];
+                    console.log('Extracted compartments:', compartments);
                     renderCompartmentOptions();
                 } else {
-                    console.error('Failed to fetch compartments:', response.status);
+                    console.error('Failed to fetch compartments:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('Error response body:', errorText);
                 }
             } catch (error) {
                 console.error('Error loading compartments:', error);
@@ -191,6 +196,7 @@
         }
 
         function renderCompartmentOptions() {
+            console.log('Rendering compartment options, compartments:', compartments);
             if (!boxCompartmentSelect) {
                 console.error('Compartment select element not found');
                 return;
@@ -212,12 +218,16 @@
 
             // Add compartment options
             if (compartments && compartments.length > 0) {
+                console.log(`Adding ${compartments.length} compartment options`);
                 compartments.forEach(compartment => {
                     const option = document.createElement('option');
                     option.value = compartment.id;
                     option.textContent = compartment.name;
                     boxCompartmentSelect.appendChild(option);
+                    console.log(`Added compartment option: ${compartment.name} (${compartment.id})`);
                 });
+            } else {
+                console.log('No compartments to add');
             }
         }
 
@@ -387,6 +397,12 @@
         // Event listeners
         addItemBtn?.addEventListener("click", addItem);
         createBoxBtn?.addEventListener("click", createQRBox);
+
+        // Listen for load-compartments event from dashboard
+        document.addEventListener('load-compartments', () => {
+            console.log('Received load-compartments event, refreshing compartments...');
+            loadCompartments();
+        });
 
         // Add item on Enter key press
         newItemInput?.addEventListener("keypress", (e) => {
