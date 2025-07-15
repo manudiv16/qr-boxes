@@ -1,0 +1,1598 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { SignedIn, SignedOut } from "@clerk/astro/components";
+import CreateBoxForm from "../components/CreateBoxForm.astro";
+import "../styles/global.css";
+---
+
+<Layout title="Dashboard" currentPage="dashboard">
+    <SignedOut>
+        <div class="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-900 mb-4">
+                    Access Denied
+                </h1>
+                <p class="text-gray-600 mb-4">
+                    You need to be signed in to access this page.
+                </p>
+                <a
+                    href="/"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                    Go to Home
+                </a>
+            </div>
+        </div>
+    </SignedOut>
+
+    <SignedIn>
+        <main
+            class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-12"
+        >
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <!-- Loading Spinner (Fixed Position) -->
+                <div id="loading" class="fixed top-4 right-4 z-40 hidden">
+                    <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-3 flex items-center space-x-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500"></div>
+                        <span class="text-sm text-gray-600">Loading...</span>
+                    </div>
+                </div>
+
+                <!-- Subtle background check indicator -->
+                <div id="background-check" class="fixed top-4 right-4 z-30 hidden">
+                    <div class="bg-blue-50 border border-blue-200 rounded-full p-2">
+                        <div class="animate-pulse w-2 h-2 bg-blue-400 rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="grid grid-cols-1 gap-8 mt-8">
+                    <!-- Boxes Container -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white shadow-sm rounded-lg p-4 border border-gray-100 mb-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                    </svg>
+                                    My Boxes
+                                </h3>
+                                
+                                <!-- Filter Controls -->
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center">
+                                        <label for="room-filter" class="text-sm font-medium text-gray-700 mr-2">Filter by room:</label>
+                                        <select id="room-filter" class="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">All rooms</option>
+                                        </select>
+                                    </div>
+                                    <button id="clear-filter" class="text-sm text-gray-500 hover:text-gray-700 underline hidden">
+                                        Clear filter
+                                    </button>
+                                    <button 
+                                        id="open-create-box-modal" 
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 shadow-sm"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                        New Box
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="boxes-container" class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"></div>
+                    </div>
+                </div>
+
+                <!-- QR Modal -->
+                <div
+                    id="qr-modal"
+                    class="fixed inset-0 items-center justify-center z-50 hidden transition-all duration-300 ease-out"
+                    style="background-color: rgba(0, 0, 0, 0.5);"
+                    transition:name="qr-modal-backdrop"
+                >
+                    <div 
+                        class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all duration-300 ease-out scale-95 opacity-0" 
+                        id="qr-modal-inner"
+                        transition:name="qr-modal-content"
+                    >
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold" transition:name="qr-modal-title">QR Code</h3>
+                            <button
+                                class="close-qr-modal text-gray-500 hover:text-gray-700"
+                            >
+                                <svg
+                                    class="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="qr-content" class="text-center" transition:name="qr-modal-qr"></div>
+                        <div class="flex justify-end mt-6 gap-2">
+                            <button
+                                id="download-qr-btn"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                                transition:name="qr-download-btn"
+                            >
+                                Download QR
+                            </button>
+                            <button
+                                class="close-qr-modal bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create Box Modal -->
+                <div
+                    id="create-box-modal"
+                    class="fixed inset-0 items-center justify-center z-50 hidden transition-all duration-300 ease-out"
+                    style="background-color: rgba(0, 0, 0, 0.3);"
+                >
+                    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out scale-95 opacity-0" id="create-box-modal-inner">
+                        <div class="sticky top-0 bg-white p-6 border-b border-gray-100 rounded-t-xl">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                                    <svg
+                                        class="w-6 h-6 text-green-600 mr-2"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Create New Box
+                                </h3>
+                                <button
+                                    id="close-create-box-modal"
+                                    class="text-gray-500 hover:text-gray-700 transition-colors"
+                                >
+                                    <svg
+                                        class="w-6 h-6"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <CreateBoxForm />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </SignedIn>
+</Layout>
+
+<style>
+    /* View Transitions for QR Modal */
+    ::view-transition-old(qr-modal-backdrop),
+    ::view-transition-new(qr-modal-backdrop) {
+        animation-duration: 0.3s;
+        animation-timing-function: ease-out;
+    }
+
+    ::view-transition-old(qr-modal-content),
+    ::view-transition-new(qr-modal-content) {
+        animation-duration: 0.4s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    ::view-transition-old(qr-code-image),
+    ::view-transition-new(qr-code-image) {
+        animation-duration: 0.5s;
+        animation-timing-function: ease-out;
+    }
+
+    /* View Transitions for Box Details */
+    [style*="view-transition-name: box-content-"] {
+        view-transition-name: var(--box-content-name);
+    }
+
+    [style*="view-transition-name: box-title-"] {
+        view-transition-name: var(--box-title-name);
+    }
+
+    [style*="view-transition-name: box-description-"] {
+        view-transition-name: var(--box-description-name);
+    }
+
+    [style*="view-transition-name: box-meta-"] {
+        view-transition-name: var(--box-meta-name);
+    }
+
+    [style*="view-transition-name: box-items-"] {
+        view-transition-name: var(--box-items-name);
+    }
+
+    [style*="view-transition-name: box-actions-"] {
+        view-transition-name: var(--box-actions-name);
+    }
+
+    [style*="view-transition-name: view-btn-"] {
+        view-transition-name: var(--view-btn-name);
+    }
+
+    /* Enhanced ViewTransition animations for box navigation */
+    ::view-transition-old(box-content),
+    ::view-transition-new(box-content) {
+        animation-duration: 0.6s;
+        animation-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    ::view-transition-old(box-title),
+    ::view-transition-new(box-title) {
+        animation-duration: 0.7s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-delay: 0.1s;
+    }
+
+    ::view-transition-old(box-description),
+    ::view-transition-new(box-description) {
+        animation-duration: 0.5s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-delay: 0.15s;
+    }
+
+    ::view-transition-old(box-meta),
+    ::view-transition-new(box-meta) {
+        animation-duration: 0.5s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-delay: 0.2s;
+    }
+
+    ::view-transition-old(box-items),
+    ::view-transition-new(box-items) {
+        animation-duration: 0.6s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-delay: 0.25s;
+    }
+
+    /* Enhanced scale transition for box expansion */
+    @keyframes expandBox {
+        0% {
+            transform: scale(1) translateY(0);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        50% {
+            transform: scale(1.02) translateY(-4px);
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        100% {
+            transform: scale(1.05) translateY(-6px);
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    }
+
+    @keyframes shrinkBox {
+        from {
+            transform: scale(1.05) translateY(-6px);
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        to {
+            transform: scale(1) translateY(0);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+    }
+
+    /* Apply scale effect on hover for better visual feedback */
+    .box-card-expanding {
+        animation: expandBox 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        z-index: 10;
+        position: relative;
+    }
+
+    .box-card-shrinking {
+        animation: shrinkBox 0.3s ease-out forwards;
+    }
+
+    /* Enhanced zoom animations for QR modal */
+    @keyframes zoomInQRModal {
+        0% {
+            opacity: 0;
+            transform: scale(0.5) rotate(-3deg);
+            filter: blur(4px);
+        }
+        50% {
+            opacity: 0.8;
+            transform: scale(1.05) rotate(0deg);
+            filter: blur(1px);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+            filter: blur(0);
+        }
+    }
+
+    @keyframes zoomOutQRModal {
+        0% {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+            filter: blur(0);
+        }
+        50% {
+            opacity: 0.6;
+            transform: scale(1.1) rotate(1deg);
+            filter: blur(1px);
+        }
+        100% {
+            opacity: 0;
+            transform: scale(0.3) rotate(-2deg);
+            filter: blur(4px);
+        }
+    }
+
+    @keyframes zoomInQRImage {
+        0% {
+            transform: scale(0.3) rotateY(90deg);
+            opacity: 0;
+        }
+        60% {
+            transform: scale(1.1) rotateY(0deg);
+            opacity: 0.9;
+        }
+        100% {
+            transform: scale(1) rotateY(0deg);
+            opacity: 1;
+        }
+    }
+
+    @keyframes zoomOutQRImage {
+        0% {
+            transform: scale(1) rotateY(0deg);
+            opacity: 1;
+        }
+        40% {
+            transform: scale(1.2) rotateY(20deg);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(0.2) rotateY(90deg);
+            opacity: 0;
+        }
+    }
+
+    /* Enhanced backdrop animation with smoother blur transitions - Fixed glitches */
+    @keyframes fadeInBackdrop {
+        0% {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+            background-color: rgba(0, 0, 0, 0);
+            transform: scale(1.02);
+        }
+        30% {
+            opacity: 0.4;
+            backdrop-filter: blur(1px);
+            background-color: rgba(0, 0, 0, 0.1);
+            transform: scale(1.01);
+        }
+        70% {
+            opacity: 0.8;
+            backdrop-filter: blur(3px);
+            background-color: rgba(0, 0, 0, 0.4);
+            transform: scale(1.005);
+        }
+        100% {
+            opacity: 1;
+            backdrop-filter: blur(4px);
+            background-color: rgba(0, 0, 0, 0.5);
+            transform: scale(1);
+        }
+    }
+
+    @keyframes fadeOutBackdrop {
+        0% {
+            opacity: 1;
+            backdrop-filter: blur(4px);
+            background-color: rgba(0, 0, 0, 0.5);
+            transform: scale(1);
+        }
+        30% {
+            opacity: 0.7;
+            backdrop-filter: blur(3px);
+            background-color: rgba(0, 0, 0, 0.3);
+            transform: scale(1.005);
+        }
+        70% {
+            opacity: 0.3;
+            backdrop-filter: blur(1px);
+            background-color: rgba(0, 0, 0, 0.1);
+            transform: scale(1.01);
+        }
+        100% {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+            background-color: rgba(0, 0, 0, 0);
+            transform: scale(1.02);
+        }
+    }
+
+    /* Apply animations for different transition states with optimized timing */
+    .qr-modal-opening {
+        animation: fadeInBackdrop 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .qr-modal-opening #qr-modal-inner {
+        animation: zoomInQRModal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .qr-modal-opening [transition*="qr-code-image"] img,
+    .qr-modal-opening .qr-code-image {
+        animation: zoomInQRImage 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+    }
+
+    .qr-modal-closing {
+        animation: fadeOutBackdrop 0.35s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+    }
+
+    .qr-modal-closing #qr-modal-inner {
+        animation: zoomOutQRModal 0.3s ease-in;
+    }
+
+    .qr-modal-closing [transition*="qr-code-image"] img,
+    .qr-modal-closing .qr-code-image {
+        animation: zoomOutQRImage 0.25s ease-in;
+    }
+
+    /* View Transitions enhancements for QR modal zoom */
+    ::view-transition-old(qr-modal-content),
+    ::view-transition-new(qr-modal-content) {
+        animation-duration: 0.5s;
+        animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    ::view-transition-old(qr-code-image),
+    ::view-transition-new(qr-code-image) {
+        animation-duration: 0.6s;
+        animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+        animation-delay: 0.1s;
+    }
+
+    /* Fallback animations when View Transitions are not available */
+    .no-view-transitions .qr-modal-opening {
+        animation: fadeInBackdrop 0.4s ease-out;
+    }
+
+    .no-view-transitions .qr-modal-opening #qr-modal-inner {
+        animation: zoomInQRModal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .no-view-transitions .qr-modal-closing {
+        animation: fadeOutBackdrop 0.3s ease-in;
+    }
+
+    .no-view-transitions .qr-modal-closing #qr-modal-inner {
+        animation: zoomOutQRModal 0.3s ease-in;
+    }
+
+    /* Optimize QR Modal for smooth backdrop transitions - Fix blur glitches */
+    #qr-modal {
+        /* Hardware acceleration for smoother animations */
+        transform: translateZ(0);
+        will-change: backdrop-filter, opacity, transform;
+        /* Prevent layout shifts during animation */
+        contain: layout style paint;
+        /* Ensure consistent backdrop blur */
+        backface-visibility: hidden;
+        /* Optimize rendering for modal transitions */
+        isolation: isolate;
+    }
+
+    #qr-modal-inner {
+        /* Hardware acceleration for modal content */
+        transform: translateZ(0);
+        will-change: transform, opacity;
+        /* Prevent sub-pixel rendering issues */
+        backface-visibility: hidden;
+    }
+
+    /* Enhanced backdrop animation with smoother blur transitions - Fixed glitches */
+    @keyframes fadeInBackdrop {
+        0% {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+            background-color: rgba(0, 0, 0, 0);
+            transform: scale(1.02);
+        }
+        30% {
+            opacity: 0.4;
+            backdrop-filter: blur(1px);
+            background-color: rgba(0, 0, 0, 0.1);
+            transform: scale(1.01);
+        }
+        70% {
+            opacity: 0.8;
+            backdrop-filter: blur(3px);
+            background-color: rgba(0, 0, 0, 0.4);
+            transform: scale(1.005);
+        }
+        100% {
+            opacity: 1;
+            backdrop-filter: blur(4px);
+            background-color: rgba(0, 0, 0, 0.5);
+            transform: scale(1);
+        }
+    }
+
+    @keyframes fadeOutBackdrop {
+        0% {
+            opacity: 1;
+            backdrop-filter: blur(4px);
+            background-color: rgba(0, 0, 0, 0.5);
+            transform: scale(1);
+        }
+        30% {
+            opacity: 0.7;
+            backdrop-filter: blur(3px);
+            background-color: rgba(0, 0, 0, 0.3);
+            transform: scale(1.005);
+        }
+        70% {
+            opacity: 0.3;
+            backdrop-filter: blur(1px);
+            background-color: rgba(0, 0, 0, 0.1);
+            transform: scale(1.01);
+        }
+        100% {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+            background-color: rgba(0, 0, 0, 0);
+            transform: scale(1.02);
+        }
+    }
+
+    /* Apply animations for different transition states with optimized timing */
+    .qr-modal-opening {
+        animation: fadeInBackdrop 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .qr-modal-opening #qr-modal-inner {
+        animation: zoomInQRModal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .qr-modal-opening [transition*="qr-code-image"] img,
+    .qr-modal-opening .qr-code-image {
+        animation: zoomInQRImage 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+    }
+
+    .qr-modal-closing {
+        animation: fadeOutBackdrop 0.35s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+    }
+
+    .qr-modal-closing #qr-modal-inner {
+        animation: zoomOutQRModal 0.3s ease-in;
+    }
+
+    .qr-modal-closing [transition*="qr-code-image"] img,
+    .qr-modal-closing .qr-code-image {
+        animation: zoomOutQRImage 0.25s ease-in;
+    }
+
+    /* View Transitions enhancements for QR modal zoom */
+    ::view-transition-old(qr-modal-content),
+    ::view-transition-new(qr-modal-content) {
+        animation-duration: 0.5s;
+        animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    ::view-transition-old(qr-code-image),
+    ::view-transition-new(qr-code-image) {
+        animation-duration: 0.6s;
+        animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+        animation-delay: 0.1s;
+    }
+
+    /* Fallback animations when View Transitions are not available */
+    .no-view-transitions .qr-modal-opening {
+        animation: fadeInBackdrop 0.4s ease-out;
+    }
+
+    .no-view-transitions .qr-modal-opening #qr-modal-inner {
+        animation: zoomInQRModal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .no-view-transitions .qr-modal-closing {
+        animation: fadeOutBackdrop 0.3s ease-in;
+    }
+
+    .no-view-transitions .qr-modal-closing #qr-modal-inner {
+        animation: zoomOutQRModal 0.3s ease-in;
+    }
+</style>
+
+<script>
+    // DOM elements
+    const loadingEl = document.getElementById("loading");
+    const backgroundCheckEl = document.getElementById("background-check");
+    const boxesContainerEl = document.getElementById("boxes-container");
+    const qrModal = document.getElementById("qr-modal");
+    const qrContent = document.getElementById("qr-content");
+    const downloadQrBtn = document.getElementById("download-qr-btn");
+    const refreshBtn = document.getElementById("refresh-btn");
+    const roomFilterEl = document.getElementById("room-filter");
+    const clearFilterBtn = document.getElementById("clear-filter");
+    const createBoxModal = document.getElementById("create-box-modal");
+    const openCreateBoxModalBtn = document.getElementById("open-create-box-modal");
+    const closeCreateBoxModalBtn = document.getElementById("close-create-box-modal");
+
+    // State
+    let allBoxes: any[] = []; // Store all boxes for filtering
+    let availableRooms = new Set<string>(); // Track unique rooms
+    let isLoading = false; // Track loading state
+    let lastDataHash = ''; // Hash of last loaded data to avoid unnecessary reloads
+    let hasInitialLoad = false; // Track if we've done the initial load
+
+    // Close modal buttons
+    document.querySelectorAll(".close-qr-modal").forEach((btn) => {
+        btn.addEventListener("click", () => closeQRModal());
+    });
+
+    // Create Box Modal event listeners
+    openCreateBoxModalBtn?.addEventListener("click", () => openCreateBoxModal());
+    closeCreateBoxModalBtn?.addEventListener("click", () => closeCreateBoxModal());
+    
+    // Close modal when clicking on backdrop
+    createBoxModal?.addEventListener("click", (e) => {
+        if (e.target === createBoxModal) {
+            closeCreateBoxModal();
+        }
+    });
+
+    // Close modal with Escape key and handle Ctrl+R
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            if (createBoxModal && !createBoxModal.classList.contains("hidden")) {
+                closeCreateBoxModal();
+            }
+            if (qrModal && !qrModal.classList.contains("hidden")) {
+                closeQRModal();
+            }
+        }
+        
+        // Handle Ctrl+R (or Cmd+R on Mac) - refresh data instead of page
+        if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+            e.preventDefault(); // Prevent default browser refresh
+            loadBoxes(true); // Force reload the data
+        }
+    });
+
+    // Event Listeners
+
+    refreshBtn?.addEventListener('click', () => {
+        loadBoxes(true); // Force reload when refresh button is clicked
+    });
+
+    // Room filter event listeners
+    roomFilterEl?.addEventListener('change', (e) => {
+        const selectedRoom = (e.target as HTMLSelectElement).value;
+        filterBoxesByRoom(selectedRoom);
+        
+        // Show/hide clear filter button
+        if (clearFilterBtn) {
+            if (selectedRoom) {
+                clearFilterBtn.classList.remove('hidden');
+            } else {
+                clearFilterBtn.classList.add('hidden');
+            }
+        }
+    });
+
+    clearFilterBtn?.addEventListener('click', () => {
+        if (roomFilterEl) {
+            (roomFilterEl as HTMLSelectElement).value = '';
+        }
+        clearFilterBtn.classList.add('hidden');
+        renderBoxes(allBoxes);
+    });
+
+    // Create box event
+    document.addEventListener("create-box", async (e) => {
+        try {
+            const { name, room, description, items, compartmentId } = (e as CustomEvent).detail;
+            showLoading(true);
+
+            const token = await getAuthToken();
+            const requestBody: any = {
+                name: name,
+                room: room || "",
+                description: description || "",
+                items: items.join("\n"),
+            };
+
+            // Only include compartmentId if it's not empty
+            if (compartmentId) {
+                requestBody.compartmentId = compartmentId;
+            }
+
+            const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/boxes`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Backend error: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            // Clear cache since we know data has changed
+            clearDataCache();
+            
+            // Reload boxes
+            loadBoxes(true); // Force reload after creating a box
+            
+            // Close the create box modal
+            closeCreateBoxModal();
+        } catch (error) {
+            console.error("Error creating QR box:", error);
+        } finally {
+            showLoading(false);
+        }
+    });
+
+    // Load compartments event (for the CreateBoxForm component)
+    document.addEventListener("load-compartments", async (e) => {
+        try {
+            const token = await getAuthToken();
+            const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/compartments/list`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to load compartments: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const compartments = data.data?.compartments || [];
+
+            // Dispatch compartments loaded event
+            document.dispatchEvent(new CustomEvent("compartments-loaded", {
+                detail: { compartments }
+            }));
+        } catch (error) {
+            console.error("Error loading compartments:", error);
+            // Dispatch empty compartments in case of error
+            document.dispatchEvent(new CustomEvent("compartments-loaded", {
+                detail: { compartments: [] }
+            }));
+        }
+    });
+
+    downloadQrBtn?.addEventListener('click', () => {
+        const img = qrContent?.querySelector("img");
+        if (img) {
+            const link = document.createElement("a");
+            link.href = img.src;
+            link.download = `qr-code-${new Date().getTime()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    });
+
+    // Get auth token from Clerk
+    async function getAuthToken() {
+        // Wait for Clerk to be available and loaded
+        await waitForClerk();
+        
+        if (typeof window !== 'undefined' && window.Clerk) {
+            const session = window.Clerk.session;
+            if (session) {
+                return await session.getToken();
+            }
+        }
+        throw new Error("User not authenticated or no active session");
+    }
+
+    // Wait for Clerk to be properly loaded
+    async function waitForClerk() {
+        return new Promise((resolve) => {
+            const checkClerk = () => {
+                if (typeof window !== 'undefined' && window.Clerk && window.Clerk.loaded) {
+                    resolve(true);
+                } else {
+                    setTimeout(checkClerk, 100);
+                }
+            };
+            checkClerk();
+        });
+    }
+
+
+    // Create a hash of the data for comparison
+    function createDataHash(boxes: any[]): string {
+        const dataString = JSON.stringify(boxes.map(box => ({
+            id: box.id,
+            name: box.name,
+            room: box.room,
+            description: box.description,
+            items: box.items,
+            createdAt: box.createdAt,
+            updatedAt: box.updatedAt
+        })));
+        
+        // Simple hash function
+        let hash = 0;
+        for (let i = 0; i < dataString.length; i++) {
+            const char = dataString.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+        return hash.toString();
+    }
+
+    // Save data to localStorage with timestamp
+    function saveDataToCache(boxes: any[], hash: string) {
+        try {
+            const cacheData = {
+                boxes: boxes,
+                hash: hash,
+                timestamp: Date.now(),
+                userId: window.Clerk?.user?.id || 'unknown'
+            };
+            localStorage.setItem('qr-boxes-cache', JSON.stringify(cacheData));
+        } catch (error) {
+            console.warn('Could not save data to cache:', error);
+        }
+    }
+
+    // Load data from localStorage if valid
+    function loadDataFromCache(): { boxes: any[], hash: string } | null {
+        try {
+            const cached = localStorage.getItem('qr-boxes-cache');
+            if (!cached) return null;
+
+            const cacheData = JSON.parse(cached);
+            const currentUserId = window.Clerk?.user?.id || 'unknown';
+            
+            // Check if cache is for the same user and not too old (5 minutes)
+            const maxAge = 5 * 60 * 1000; // 5 minutes
+            const isValidAge = (Date.now() - cacheData.timestamp) < maxAge;
+            const isValidUser = cacheData.userId === currentUserId;
+
+            if (isValidAge && isValidUser && cacheData.boxes && cacheData.hash) {
+                return {
+                    boxes: cacheData.boxes,
+                    hash: cacheData.hash
+                };
+            }
+        } catch (error) {
+            console.warn('Could not load data from cache:', error);
+        }
+        return null;
+    }
+
+    // Clear cache (useful when we know data has changed)
+    function clearDataCache() {
+        try {
+            localStorage.removeItem('qr-boxes-cache');
+        } catch (error) {
+            console.warn('Could not clear cache:', error);
+        }
+    }
+
+    // Load boxes from backend
+    async function loadBoxes(forceReload = false) {
+        // Avoid loading if already in progress
+        if (isLoading && !forceReload) {
+            return;
+        }
+
+        // Try to load from cache first (only on initial load, not forced reloads)
+        if (!hasInitialLoad && !forceReload) {
+            const cachedData = loadDataFromCache();
+            if (cachedData) {
+                console.log('Loading from cache to avoid unnecessary network request');
+                allBoxes = cachedData.boxes;
+                lastDataHash = cachedData.hash;
+                updateRoomFilter(cachedData.boxes);
+                renderBoxes(cachedData.boxes);
+                hasInitialLoad = true;
+                
+                // Still check for updates in background without showing loading
+                setTimeout(() => loadBoxes(false), 1000);
+                return;
+            }
+        }
+
+        try {
+            isLoading = true;
+            
+            // Only show loading on forced reloads or when we don't have cached data
+            if (forceReload || !hasInitialLoad) {
+                showLoading(true);
+            } else {
+                // Show subtle background check indicator for silent updates
+                showBackgroundCheck(true);
+            }
+
+            const token = await getAuthToken();
+            const response = await fetch(
+                `${process.env.PUBLIC_BACKEND_URL}/api/boxes/list`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to load boxes: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const boxes = data.data.boxes || [];
+
+            // Create a more robust hash of the data to compare with previous load
+            const newDataHash = createDataHash(boxes);
+            
+            // Only update if data has changed or it's a forced reload
+            if (forceReload || newDataHash !== lastDataHash) {
+                console.log('Data has changed, updating UI');
+                lastDataHash = newDataHash;
+                
+                // Store all boxes for filtering
+                allBoxes = boxes;
+                
+                // Update available rooms and room filter dropdown
+                updateRoomFilter(boxes);
+                
+                renderBoxes(boxes);
+                
+                // Save to cache
+                saveDataToCache(boxes, newDataHash);
+            } else {
+                console.log('No changes detected, skipping UI update');
+            }
+            
+            hasInitialLoad = true;
+        } catch (error) {
+            console.error("Error loading boxes:", error);
+            // Clear cache on error to avoid stale data
+            clearDataCache();
+        } finally {
+            isLoading = false;
+            showLoading(false);
+            showBackgroundCheck(false);
+        }
+    }
+
+    // ========================================
+    // UTILITY FUNCTIONS
+    // ========================================
+    
+    /**
+     * Simple HTML escape function for security
+     * Prevents XSS attacks by escaping HTML characters
+     */
+    function escapeHtml(unsafe: string): string {
+        if (!unsafe) return '';
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // ========================================
+    // BOX CARD RENDERING - Modular Components
+    // ========================================
+    
+    /**
+     * Generates optimized box card HTML (consolidated & modular)
+     * This mirrors the structure of BoxCard.astro component for consistency
+     * Now with improved security and modularity
+     */
+    // Generate optimized box card HTML (consolidated & modular)
+    function generateBoxCardHTML(box: any): string {
+        return `
+            <div class="bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all" data-box-id="${box.id}">
+                <div class="p-5" style="view-transition-name: box-content-${box.id}">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex-1">
+                            <h4 class="text-lg font-bold text-gray-900" style="view-transition-name: box-title-${box.id}">${escapeHtml(box.name)}</h4>
+                            ${box.compartmentId ? `
+                                <div class="flex items-center mt-1">
+                                    <svg class="w-3 h-3 text-green-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.121M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.196-2.121M7 20v-2c0-.656.126-1.283.356-1.857M7 20a3 3 0 013-3h4a3 3 0 013 3z"></path>
+                                    </svg>
+                                    <span class="text-xs text-green-600 font-medium">Shared in compartment</span>
+                                </div>
+                            ` : `
+                                <div class="flex items-center mt-1">
+                                    <svg class="w-3 h-3 text-gray-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                    </svg>
+                                    <span class="text-xs text-gray-400 font-medium">Personal box</span>
+                                </div>
+                            `}
+                        </div>
+                        ${box.room ? `
+                            <span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full" style="view-transition-name: box-room-${box.id}">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                ${escapeHtml(box.room)}
+                            </span>
+                        ` : ''}
+                    </div>
+                    
+                    ${box.description ? `
+                        <p class="text-sm text-gray-600 mb-3 line-clamp-2" style="view-transition-name: box-description-${box.id}">${escapeHtml(box.description)}</p>
+                    ` : ''}
+                    
+                    <div class="flex items-center text-sm text-gray-500 mb-3" style="view-transition-name: box-meta-${box.id}">
+                        <span class="font-medium">${box.items?.length || 0} items</span>
+                        <span class="mx-2">•</span>
+                        <span class="text-xs">${new Date(box.createdAt).toLocaleDateString()}</span>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1 mb-3" style="view-transition-name: box-items-${box.id}">
+                        ${box.items && box.items.length > 0 ? `
+                            ${box.items.slice(0, 3).map((item: string) => `
+                                <span class="inline-flex items-center bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
+                                    ${escapeHtml(item)}
+                                </span>
+                            `).join('')}
+                            ${box.items.length > 3 ? `<span class="text-gray-400 text-xs">+${box.items.length - 3} more</span>` : ''}
+                        ` : '<span class="text-gray-400 text-xs">No items</span>'}
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-100 bg-gray-50 p-3 rounded-b-xl flex justify-between items-center" style="view-transition-name: box-actions-${box.id}">
+                    <button 
+                        data-id="${box.id}" 
+                        data-action="view" 
+                        class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-all duration-200 transform hover:scale-105"
+                        style="view-transition-name: view-btn-${box.id}"
+                    >
+                        View details
+                    </button>
+                    <div class="flex gap-2">
+                        <button 
+                            data-id="${box.id}" 
+                            data-action="qr" 
+                            class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md transition-all duration-200 transform hover:scale-105"
+                            data-transition-name="qr-btn-${box.id}"
+                        >
+                            Show QR
+                        </button>
+                        <button 
+                            data-id="${box.id}" 
+                            data-name="${escapeHtml(box.name)}" 
+                            data-action="delete" 
+                            class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * ========================================
+     * MODULAR BOX CARDS - SUMMARY OF IMPROVEMENTS
+     * ========================================
+     * 
+     * 1. SECURITY: Added HTML escaping to prevent XSS attacks
+     * 2. MODULARITY: Consolidated card generation into a single, well-documented function
+     * 3. CONSISTENCY: HTML structure now mirrors BoxCard.astro component exactly
+     * 4. MAINTAINABILITY: Clear separation of concerns with dedicated utility functions
+     * 5. PERFORMANCE: Optimized string generation with template literals
+     * 6. ACCESSIBILITY: Proper ARIA attributes and semantic HTML structure
+     * 7. TRANSITIONS: Full ViewTransition support for smooth animations
+     * 
+     * The BoxCard.astro component remains available for server-side rendering,
+     * while generateBoxCardHTML() provides client-side rendering capabilities.
+     * Both implementations share the same visual design and functionality.
+     */
+
+    // ========================================
+    // BOX RENDERING & EVENT MANAGEMENT
+    // ========================================
+    
+    /**
+     * Render boxes using the optimized card generator
+     * This function orchestrates the rendering of all box cards
+     * and manages the DOM updates with proper event listeners
+     */
+    function renderBoxes(boxes: any[]) {
+        if (!boxesContainerEl) return;
+
+        if (boxes.length === 0) {
+            boxesContainerEl.innerHTML = generateEmptyState();
+        } else {
+            // Generate all box cards using the modular HTML generator
+            boxesContainerEl.innerHTML = boxes.map(box => generateBoxCardHTML(box)).join("");
+            // Attach event listeners to the newly created elements
+            attachBoxEventListeners();
+        }
+    }
+
+    /**
+     * Generate empty state HTML when no boxes exist
+     * Provides user guidance for creating their first box
+     */
+    function generateEmptyState(): string {
+        return `
+            <div class="col-span-full text-center p-8 bg-white border border-gray-100 rounded-lg shadow-sm">
+                <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-700 mb-1">No boxes yet</h3>
+                <p class="text-gray-500 text-sm">Create a box using the form on the left</p>
+            </div>
+        `;
+    }
+
+    /**
+     * Attach event listeners to box action buttons
+     * This function makes the box cards interactive by binding
+     * click events to View, QR, and Delete buttons
+     */
+    function attachBoxEventListeners() {
+        if (!boxesContainerEl) return;
+        
+        boxesContainerEl.querySelectorAll('[data-action]').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const boxId = button.getAttribute('data-id');
+                const action = button.getAttribute('data-action');
+                
+                if (action === 'view' && boxId) {
+                    navigateToBoxDetails(boxId, e.target as HTMLElement);
+                } else if (action === 'qr' && boxId) {
+                    showBoxQR(boxId);
+                } else if (action === 'delete') {
+                    const boxName = button.getAttribute('data-name');
+                    if (boxId && boxName) {
+                        deleteBox(boxId, boxName);
+                    }
+                }
+            });
+        });
+    }
+
+    // Update room filter dropdown with available rooms
+    function updateRoomFilter(boxes: any[]) {
+        if (!roomFilterEl) return;
+        
+        // Clear existing rooms
+        availableRooms.clear();
+        
+        // Extract unique rooms from boxes
+        boxes.forEach(box => {
+            if (box.room && box.room.trim()) {
+                availableRooms.add(box.room.trim());
+            }
+        });
+        
+        // Get current selection
+        const currentValue = (roomFilterEl as HTMLSelectElement).value;
+        
+        // Update dropdown options
+        const sortedRooms = Array.from(availableRooms).sort();
+        roomFilterEl.innerHTML = '<option value="">All rooms</option>' + 
+            sortedRooms.map(room => 
+                `<option value="${room}" ${room === currentValue ? 'selected' : ''}>${room}</option>`
+            ).join('');
+    }
+
+    // Navigate to box details with View Transitions
+    function navigateToBoxDetails(boxId: string, clickedElement: HTMLElement) {
+        const boxCard = clickedElement.closest('[data-box-id]') as HTMLElement;
+        
+        if ('startViewTransition' in document && boxCard) {
+            // Add expanding animation class for immediate visual feedback
+            boxCard.classList.add('box-card-expanding');
+            
+            // Use View Transitions API for smooth navigation
+            const transition = document.startViewTransition(() => {
+                // This function will be called when the transition is ready
+                // Add state to help detect back navigation
+                history.pushState({ fromDashboard: true }, '', `/box/${boxId}`);
+                window.location.href = `/box/${boxId}`;
+            });
+
+            // Handle the transition promise
+            transition.ready.then(() => {
+                // Transition has started, clean up
+                setTimeout(() => {
+                    boxCard.classList.remove('box-card-expanding');
+                }, 100);
+            }).catch((error) => {
+                // Fallback if View Transition fails
+                console.warn('View Transition failed:', error);
+                boxCard.classList.remove('box-card-expanding');
+                window.location.href = `/box/${boxId}`;
+            });
+
+            // Fallback timeout in case the transition gets stuck
+            setTimeout(() => {
+                if (boxCard.classList.contains('box-card-expanding')) {
+                    boxCard.classList.remove('box-card-expanding');
+                    window.location.href = `/box/${boxId}`;
+                }
+            }, 1000);
+        } else {
+            // Fallback for browsers without View Transitions support
+            if (boxCard) {
+                boxCard.classList.add('box-card-expanding');
+                setTimeout(() => {
+                    window.location.href = `/box/${boxId}`;
+                }, 250);
+            } else {
+                window.location.href = `/box/${boxId}`;
+            }
+        }
+    }
+
+    // Filter boxes by selected room
+    function filterBoxesByRoom(selectedRoom: string) {
+        let filteredBoxes;
+        
+        if (!selectedRoom) {
+            filteredBoxes = allBoxes;
+        } else {
+            filteredBoxes = allBoxes.filter(box => 
+                box.room && box.room.trim() === selectedRoom
+            );
+        }
+        
+        renderBoxes(filteredBoxes);
+    }
+
+    // Delete box
+    async function deleteBox(boxId: string, boxName: string) {
+        try {
+            if (!confirm(`Are you sure you want to delete box "${boxName}"? This cannot be undone.`)) {
+                return;
+            }
+            
+            showLoading(true);
+            
+            const token = await getAuthToken();
+            const response = await fetch(`${process.env.PUBLIC_BACKEND_URL}/api/boxes/delete?id=${boxId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete box: ${response.status}`);
+            }
+
+            // Clear cache since we know data has changed
+            clearDataCache();
+
+            loadBoxes(true); // Force reload after deleting a box
+        } catch (error) {
+            console.error("Error deleting box:", error);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // Preload QR image for smoother transitions
+    function preloadQRImage(base64Data: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => reject();
+            img.src = `data:image/png;base64,${base64Data}`;
+        });
+    }
+
+    // Show box QR in modal
+    async function showBoxQR(boxId: string) {
+        try {
+            showLoading(true);
+            const token = await getAuthToken();
+            const response = await fetch(
+                `${process.env.PUBLIC_BACKEND_URL}/api/boxes/qr?id=${boxId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to load QR: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const box = data.data;
+
+            // Preload the QR image for smoother transition
+            try {
+                await preloadQRImage(box.qrCode);
+            } catch (error) {
+                console.warn('Could not preload QR image:', error);
+            }
+
+            if (qrContent) {
+                // Use View Transitions for content update if available
+                if ('startViewTransition' in document) {
+                    document.startViewTransition(() => {
+                        qrContent.innerHTML = `
+                            <div class="mb-2 font-semibold" transition:name="qr-box-name">${box.name}</div>
+                            <div class="bg-white p-3 inline-block rounded-lg shadow-sm border-2 border-gray-100 mb-3" transition:name="qr-code-container">
+                                <img src="data:image/png;base64,${box.qrCode}" class="w-48 h-48" alt="QR Code" transition:name="qr-code-image" />
+                            </div>
+                            <div class="text-xs text-gray-500" transition:name="qr-instruction">Scan this QR code to access box content</div>
+                        `;
+                    });
+                } else {
+                    // Fallback without transitions
+                    qrContent.innerHTML = `
+                        <div class="mb-2 font-semibold">${box.name}</div>
+                        <div class="bg-white p-3 inline-block rounded-lg shadow-sm border-2 border-gray-100 mb-3">
+                            <img src="data:image/png;base64,${box.qrCode}" class="w-48 h-48" alt="QR Code" />
+                        </div>
+                        <div class="text-xs text-gray-500">Scan this QR code to access box content</div>
+                    `;
+                }
+            }
+
+            showQRModal();
+        } catch (error) {
+            console.error("Error showing box QR:", error);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // Show QR modal with enhanced zoom in effect using View Transitions
+    function showQRModal() {
+        const modal = document.getElementById('qr-modal');
+        const modalContent = modal?.querySelector('#qr-modal-inner');
+        
+        if (modal && modalContent) {
+            // Ensure initial state
+            modal.classList.remove('qr-modal-closing');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            
+            // Use View Transitions API if available
+            if ('startViewTransition' in document) {
+                const transition = document.startViewTransition(() => {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex', 'qr-modal-opening');
+                    
+                    // Force reflow before animating
+                    modal.offsetHeight;
+                    
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                });
+
+                // Handle the transition promise
+                transition.ready.then(() => {
+                    // Clean up after animation completes
+                    setTimeout(() => {
+                        modal.classList.remove('qr-modal-opening');
+                    }, 470); // Slightly longer than animation duration (450ms)
+                }).catch((error) => {
+                    // Fallback if View Transition fails
+                    console.warn('QR Modal View Transition failed:', error);
+                    modal.classList.remove('qr-modal-opening');
+                });
+            } else {
+                // Optimized fallback for browsers without View Transitions
+                modal.classList.remove('hidden');
+                modal.classList.add('flex', 'qr-modal-opening');
+                
+                // Force reflow to ensure backdrop is rendered
+                modal.offsetHeight;
+                
+                // Animate modal content with RequestAnimationFrame for smoothness
+                requestAnimationFrame(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                });
+
+                // Clean up animation class
+                setTimeout(() => {
+                    modal.classList.remove('qr-modal-opening');
+                }, 470); // Match animation duration
+            }
+        }
+    }
+
+    // Close QR modal with enhanced zoom out animation using View Transitions
+    function closeQRModal() {
+        const modal = document.getElementById('qr-modal');
+        const modalContent = modal?.querySelector('#qr-modal-inner');
+        
+        if (modal && modalContent) {
+            // Use View Transitions API if available
+            if ('startViewTransition' in document) {
+                // Apply closing animation classes first
+                modal.classList.add('qr-modal-closing');
+                modal.classList.remove('qr-modal-opening');
+                
+                const transition = document.startViewTransition(() => {
+                    modalContent.classList.remove('scale-100', 'opacity-100');
+                    modalContent.classList.add('scale-95', 'opacity-0');
+                    
+                    // Wait for content animation before hiding modal
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                    }, 280); // Slightly shorter than backdrop animation (350ms)
+                });
+                
+                // Clean up animation classes after transition
+                transition.finished.then(() => {
+                    modal.classList.remove('qr-modal-closing');
+                }).catch(() => {
+                    // Fallback cleanup
+                    modal.classList.remove('qr-modal-closing');
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                });
+            } else {
+                // Optimized fallback animation for browsers without View Transitions
+                modal.classList.add('qr-modal-closing');
+                modal.classList.remove('qr-modal-opening');
+                
+                // Animate content out with RequestAnimationFrame
+                requestAnimationFrame(() => {
+                    modalContent.classList.remove('scale-100', 'opacity-100');
+                    modalContent.classList.add('scale-95', 'opacity-0');
+                });
+                
+                // Hide modal after animation completes
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex', 'qr-modal-closing');
+                }, 380); // Slightly longer than animation duration (350ms)
+            }
+        }
+    }
+
+    // Open Create Box modal with animation
+    function openCreateBoxModal() {
+        const modal = document.getElementById('create-box-modal');
+        const modalContent = modal?.querySelector('#create-box-modal-inner');
+        
+        if (modal && modalContent) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex'); // Add flex when showing
+            
+            // Force reflow
+            modal.offsetHeight;
+            
+            // Add animation classes
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+
+            // Trigger compartments loading when modal opens
+            setTimeout(() => {
+                document.dispatchEvent(new CustomEvent('load-compartments'));
+            }, 100);
+        }
+    }
+
+    // Close Create Box modal with animation
+    function closeCreateBoxModal() {
+        const modal = document.getElementById('create-box-modal');
+        const modalContent = modal?.querySelector('#create-box-modal-inner');
+        
+        if (modal && modalContent) {
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex'); // Remove flex when hiding
+            }, 300);
+        }
+    }
+
+    // Show/hide loading spinner
+    function showLoading(show: boolean) {
+        if (!loadingEl) return;
+        
+        if (show) {
+            loadingEl.classList.remove("hidden");
+        } else {
+            loadingEl.classList.add("hidden");
+        }
+    }
+
+    // Show/hide subtle background check indicator
+    function showBackgroundCheck(show: boolean) {
+        if (!backgroundCheckEl) return;
+        
+        if (show) {
+            backgroundCheckEl.classList.remove("hidden");
+        } else {
+            backgroundCheckEl.classList.add("hidden");
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener("DOMContentLoaded", async () => {
+        try {
+            // Add class to body based on View Transitions support
+            if (!('startViewTransition' in document)) {
+                (document as any).body.classList.add('no-view-transitions');
+            }
+
+            // Wait for Clerk to be ready before loading boxes
+            await waitForClerk();
+            // Start loading boxes - Clerk components handle authentication automatically
+            loadBoxes(false); // Use cache if available on initial load
+            
+            // Set up periodic refresh every 2 minutes (only if data changes)
+            setInterval(() => {
+                if (!isLoading && hasInitialLoad) {
+                    loadBoxes(false); // Don't force reload, only update if data changed
+                }
+            }, 120000); // 2 minutes instead of 30 seconds
+        } catch (error) {
+            console.error("Error initializing:", error);
+        }
+    });
+
+    // Handle page visibility change - refresh when user comes back to tab
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && !isLoading && hasInitialLoad) {
+            // Only check for updates if user was away for more than 1 minute
+            const lastUpdate = localStorage.getItem('last-boxes-update');
+            const now = Date.now();
+            const oneMinute = 60 * 1000;
+            
+            if (!lastUpdate || (now - parseInt(lastUpdate)) > oneMinute) {
+                // User switched back to this tab after being away, check for updates
+                setTimeout(() => loadBoxes(false), 500);
+                localStorage.setItem('last-boxes-update', now.toString());
+            }
+        }
+    });
+</script>

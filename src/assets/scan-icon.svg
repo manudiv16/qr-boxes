@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" fill="none" viewBox="0 0 192 192">
+<svg  width="192" height="192" fill="none" viewBox="0 0 192 192">
   <path fill="#0284c7" d="M160 32H32c-4.4 0-8 3.6-8 8v112c0 4.4 3.6 8 8 8h128c4.4 0 8-3.6 8-8V40c0-4.4-3.6-8-8-8zm-8 112H40V48h112v96z"/>
   <path fill="#0284c7" d="M56 64h8v8h-8zM72 64h8v8h-8zM88 64h8v8h-8zM104 64h8v8h-8zM120 64h8v8h-8zM128 80H64v32h64V80z"/>
   <path fill="#0284c7" d="M136 88v16M152 64l-8 8M152 128l-8-8M40 88v16M48 64l-8 8M48 128l-8-8"/>

@@ -9,12 +9,12 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/node": "^9.2.2",
-    "@astrojs/vercel": "^8.1.5",
+    "@astrojs/node": "^9.3.0",
+    "@astrojs/vercel": "^8.2.2",
     "@clerk/astro": "^2.9.0",
     "@clerk/clerk-js": "^5.68.0",
     "@tailwindcss/vite": "^4.1.8",
-    "astro": "^5.9.1",
+    "astro": "^5.11.1",
     "free-astro-components": "^1.2.0",
     "tailwindcss": "^4.1.8"
   },
