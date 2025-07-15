@@ -1,6 +1,7 @@
 <!-- New Token Modal -->
-<div id="new-token-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border shadow-lg rounded-lg bg-white max-w-2xl">
+<div id="new-token-modal" class="fixed inset-0 bg-transparent overflow-y-auto h-full w-full hidden z-50">
+    <div class="min-h-full flex items-center justify-center p-4">
+        <div class="relative border shadow-xl rounded-lg bg-white max-w-2xl w-full p-5">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-lg font-semibold text-gray-900">🎉 API Token Created!</h3>
             <button id="new-token-modal-close" class="text-gray-400 hover:text-gray-600">
@@ -54,6 +55,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" <span id="example-api-url">API_URL</s
                 >
                     I've saved my token
                 </button>
+            </div>
             </div>
         </div>
     </div>
