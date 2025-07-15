@@ -1,0 +1,134 @@
+<!-- New Token Modal -->
+<div id="new-token-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border shadow-lg rounded-lg bg-white max-w-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold text-gray-900">🎉 API Token Created!</h3>
+            <button id="new-token-modal-close" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="space-y-4">
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h4 class="text-yellow-800 font-medium mb-2">⚠️ Important Security Notice</h4>
+                <p class="text-yellow-700 text-sm">This is the only time you'll see this token. Please copy it now and store it securely.</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Your new API token:</label>
+                <div class="flex items-center space-x-2">
+                    <input
+                        type="text"
+                        id="new-token-value"
+                        readonly
+                        class="flex-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg font-mono text-sm"
+                    />
+                    <button
+                        id="copy-token-btn"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center"
+                    >
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        Copy
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 class="text-blue-800 font-medium mb-2">Usage Example</h4>
+                <div class="text-blue-700 text-sm space-y-2">
+                    <p>Use this token in your API requests:</p>
+                    <code class="block bg-blue-100 p-2 rounded text-xs">
+curl -H "Authorization: Bearer YOUR_TOKEN" <span id="example-api-url">API_URL</span>/api/boxes/list
+                    </code>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button
+                    id="new-token-done-btn"
+                    class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                >
+                    I've saved my token
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize modal events when component loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Close modal events
+    document.getElementById('new-token-modal-close')?.addEventListener('click', () => {
+        hideNewTokenModal();
+    });
+
+    document.getElementById('new-token-done-btn')?.addEventListener('click', () => {
+        hideNewTokenModal();
+    });
+
+    document.getElementById('copy-token-btn')?.addEventListener('click', () => {
+        copyTokenToClipboard();
+    });
+});
+
+function hideNewTokenModal() {
+    const modal = document.getElementById('new-token-modal');
+    modal?.classList.add('hidden');
+}
+
+async function copyTokenToClipboard() {
+    const tokenInput = document.getElementById('new-token-value') as HTMLInputElement;
+    const copyBtn = document.getElementById('copy-token-btn');
+
+    if (!tokenInput || !copyBtn) return;
+
+    try {
+        await navigator.clipboard.writeText(tokenInput.value);
+        
+        // Visual feedback
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = '✅ Copied!';
+        copyBtn.classList.add('bg-green-600');
+        copyBtn.classList.remove('bg-blue-600');
+        
+        setTimeout(() => {
+            copyBtn.innerHTML = originalText;
+            copyBtn.classList.remove('bg-green-600');
+            copyBtn.classList.add('bg-blue-600');
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Failed to copy token:', error);
+        // Fallback for older browsers
+        tokenInput.select();
+        document.execCommand('copy');
+    }
+}
+
+// Export functions globally so they can be used by the profile page
+(window as any).showNewTokenModal = function(rawToken: string) {
+    const modal = document.getElementById('new-token-modal');
+    const tokenInput = document.getElementById('new-token-value') as HTMLInputElement;
+    const exampleApiUrlElement = document.getElementById('example-api-url');
+
+    if (!modal || !tokenInput) return;
+
+    // Set the token value
+    tokenInput.value = rawToken;
+    
+    // Set the API URL in the example
+    if (exampleApiUrlElement) {
+        const apiUrl = (window as any).profilePage?.apiUrl || import.meta.env.PUBLIC_BACKEND_URL || '';
+        exampleApiUrlElement.textContent = apiUrl;
+    }
+    
+    modal.classList.remove('hidden');
+};
+
+(window as any).hideNewTokenModal = hideNewTokenModal;
+</script>

@@ -6,16 +6,16 @@ import tailwindcss from "@tailwindcss/vite";
 
 import vercel from "@astrojs/vercel";
 
+import react from "@astrojs/react";
+
 // Default environment variables for builhttps://astro.build/config
 export default defineConfig({
-  integrations: [
-    clerk({
-      afterSignInUrl: "/dashboard",
-      afterSignUpUrl: "/dashboard",
-      signInUrl: "/",
-      signUpUrl: "/",
-    }),
-  ],
+  integrations: [clerk({
+    afterSignInUrl: "/dashboard",
+    afterSignUpUrl: "/dashboard",
+    signInUrl: "/",
+    signUpUrl: "/",
+  }), react()],
   adapter: vercel(),
   output: "server",
   vite: {

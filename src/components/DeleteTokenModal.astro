@@ -1,0 +1,69 @@
+<!-- Delete Confirmation Modal -->
+<div id="delete-token-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">Delete API Token</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500" id="delete-token-message">
+                    Are you sure you want to delete this API token? This action cannot be undone and any applications using this token will stop working.
+                </p>
+            </div>
+            <div class="items-center px-4 py-3">
+                <button id="delete-token-confirm-btn" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                    Delete
+                </button>
+                <button id="delete-token-cancel-btn" class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-24 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize modal events when component loads
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('delete-token-cancel-btn')?.addEventListener('click', () => {
+        hideDeleteTokenModal();
+    });
+
+    document.getElementById('delete-token-confirm-btn')?.addEventListener('click', () => {
+        if ((window as any).profilePage?.performDeleteToken) {
+            (window as any).profilePage.performDeleteToken();
+        }
+    });
+});
+
+function hideDeleteTokenModal() {
+    const modal = document.getElementById('delete-token-modal');
+    modal?.classList.add('hidden');
+    
+    // Clear the current token ID in profile page
+    if ((window as any).profilePage) {
+        (window as any).profilePage.currentTokenId = null;
+    }
+}
+
+// Export functions globally so they can be used by the profile page and React components
+(window as any).showDeleteTokenModal = function(tokenId: string, tokenName: string) {
+    const modal = document.getElementById('delete-token-modal');
+    const message = document.getElementById('delete-token-message');
+
+    if (!modal || !message) return;
+
+    // Set the current token ID in profile page
+    if ((window as any).profilePage) {
+        (window as any).profilePage.currentTokenId = tokenId;
+    }
+    
+    message.textContent = `Are you sure you want to delete "${tokenName}"? This action cannot be undone and any applications using this token will stop working.`;
+    modal.classList.remove('hidden');
+};
+
+(window as any).hideDeleteTokenModal = hideDeleteTokenModal;
+</script>
