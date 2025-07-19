@@ -4,6 +4,7 @@ import { SignedIn, SignedOut } from "@clerk/astro/components";
 import "../styles/global.css";
 import UserInfo  from "../components/UserInfo.astro";
 import TokensList from "../components/TokensList.tsx";
+import CreateTokenForm from "../components/CreateTokenForm.tsx";
 import NewTokenModal from "../components/NewTokenModal.astro";
 import DeleteTokenModal from "../components/DeleteTokenModal.astro";
 ---
@@ -73,74 +74,7 @@ import DeleteTokenModal from "../components/DeleteTokenModal.astro";
 
                 <!-- API Tokens Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Create API Token Form -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-white shadow-sm rounded-lg p-6 border border-gray-100 sticky top-4">
-                            <h2 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                                <svg width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="w-6 h-6 text-green-600 mr-2">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M16.555 3.843l3.602 3.602a2.877 2.877 0 0 1 0 4.069l-2.643 2.643a2.877 2.877 0 0 1 -4.069 0l-.301 -.301l-6.558 6.558a2 2 0 0 1 -1.239 .578l-.175 .008h-1.172a1 1 0 0 1 -.993 -.883l-.007 -.117v-1.172a2 2 0 0 1 .467 -1.284l.119 -.13l.414 -.414h2v-2h2v-2l2.144 -2.144l-.301 -.301a2.877 2.877 0 0 1 0 -4.069l2.643 -2.643a2.877 2.877 0 0 1 4.069 0z" /><path d="M15 9h.01" /></svg>
-
-                                Create API Token
-                            </h2>
-
-                            <form id="create-token-form" class="space-y-4">
-                                <div>
-                                    <label for="token-name" class="block text-sm font-medium text-gray-700 mb-2">
-                                        Token Name <span class="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="token-name"
-                                        name="name"
-                                        required
-                                        maxlength="100"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                        placeholder="e.g., My Integration, Script Token"
-                                    />
-                                    <p class="text-xs text-gray-500 mt-1">Choose a descriptive name to identify this token</p>
-                                </div>
-                                
-                                <div>
-                                    <label for="token-expires" class="block text-sm font-medium text-gray-700 mb-2">
-                                        Expiration (optional)
-                                    </label>
-                                    <select id="token-expires" name="expires" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="">Never expires</option>
-                                        <option value="7">7 days</option>
-                                        <option value="30">30 days</option>
-                                        <option value="90">90 days</option>
-                                        <option value="365">1 year</option>
-                                    </select>
-                                    <p class="text-xs text-gray-500 mt-1">Tokens without expiration are more convenient but less secure</p>
-                                </div>
-                                
-                                <button
-                                    type="submit"
-                                    id="submit-create-token"
-                                    class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-sm hover:shadow disabled:bg-gray-400 disabled:shadow-none"
-                                >
-                                    Create API Token
-                                </button>
-                            </form>
-
-                            <!-- API Documentation Link -->
-                            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                                <h3 class="text-sm font-medium text-gray-900 mb-2">API Documentation</h3>
-                                <p class="text-xs text-gray-600 mb-3">Learn how to use API tokens to access your data programmatically.</p>
-                                <div class="space-y-2">
-                                    <div class="text-xs">
-                                        <span class="font-medium">Base URL:</span>
-                                        <code class="bg-gray-200 px-1 rounded" id="api-base-url">loading...</code>
-                                    </div>
-                                    <div class="text-xs">
-                                        <span class="font-medium">Authorization:</span>
-                                        <code class="bg-gray-200 px-1 rounded">Bearer YOUR_API_TOKEN</code>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
+                    <CreateTokenForm client:load />
                     <TokensList client:load onReload={true} />
                 </div>
             </div>
@@ -160,23 +94,12 @@ class ProfilePage {
         this.apiUrl = process.env.PUBLIC_BACKEND_URL || '';
         this.currentTokenId = null;
         this.init();
-        // Make this instance available globally for the React component
+        // Make this instance available globally for the React components
         (window as any).profilePage = this;
     }
 
     init() {
-        this.bindEvents();
         this.waitForClerkAndLoad();
-        
-        // Set API base URL in documentation
-        const apiBaseUrlElement = document.getElementById('api-base-url');
-        const exampleApiUrlElement = document.getElementById('example-api-url');
-        if (apiBaseUrlElement) {
-            apiBaseUrlElement.textContent = this.apiUrl;
-        }
-        if (exampleApiUrlElement) {
-            exampleApiUrlElement.textContent = this.apiUrl;
-        }
     }
 
     async waitForClerkAndLoad() {
@@ -195,7 +118,6 @@ class ProfilePage {
         
         if (attempts >= maxAttempts) {
             this.updateStatus('Authentication service not available. Please refresh the page.', 'error');
-            this.showLoading(false);
             return;
         }
         
@@ -203,7 +125,7 @@ class ProfilePage {
         attempts = 0;
         while (attempts < maxAttempts) {
             if ((window as any).Clerk.user) {
-                // The React component will handle loading tokens
+                // The React components will handle their own initialization
                 return;
             }
             
@@ -213,19 +135,6 @@ class ProfilePage {
         
         // User is not signed in
         this.updateStatus('Please sign in to access your profile.', 'error');
-        this.showLoading(false);
-    }
-
-    bindEvents() {
-        // Create token form
-        const form = document.getElementById('create-token-form') as HTMLFormElement;
-        form?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.createAPIToken();
-        });
-
-        // Modal events are now handled by the modal components themselves
-        // No need to bind them here anymore
     }
 
     async getAuthToken(): Promise<string | null> {
@@ -238,78 +147,6 @@ class ProfilePage {
         } catch (error) {
             console.error('❌ Error getting auth token:', error);
             return null;
-        }
-    }
-
-
-
-
-    async createAPIToken() {
-        const form = document.getElementById('create-token-form') as HTMLFormElement;
-        const submitBtn = document.getElementById('submit-create-token') as HTMLButtonElement;
-
-        if (!form) return;
-
-        try {
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Creating...';
-            }
-
-            const token = await this.getAuthToken();
-            if (!token) {
-                throw new Error('No authentication token available');
-            }
-
-            const formData = new FormData(form);
-            const tokenData: any = {
-                name: (formData.get('name') as string)?.trim() || ''
-            };
-
-            // Handle expiration
-            const expiresInDays = formData.get('expires') as string;
-            if (expiresInDays) {
-                const expiresAt = new Date();
-                expiresAt.setDate(expiresAt.getDate() + parseInt(expiresInDays));
-                tokenData.expiresAt = expiresAt.toISOString();
-            }
-
-            const response = await fetch(`${this.apiUrl}/api/tokens`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(tokenData)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to create API token');
-            }
-
-            const data = await response.json();
-            
-            // Use the global function from NewTokenModal component
-            if ((window as any).showNewTokenModal) {
-                (window as any).showNewTokenModal(data.data.rawToken);
-            }
-            
-            form.reset();
-            
-            // Reload the React TokensList component
-            if ((window as any).reloadTokensList) {
-                (window as any).reloadTokensList();
-            }
-
-        } catch (error) {
-            console.error('Error creating API token:', error);
-            this.updateStatus((error as Error).message || 'Failed to create API token', 'error');
-        } finally {
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Create API Token';
-            }
         }
     }
 
@@ -396,13 +233,6 @@ class ProfilePage {
         }
     }
 
-    showLoading(show: boolean) {
-        const loading = document.getElementById('loading');
-        if (loading) {
-            loading.style.display = show ? 'flex' : 'none';
-        }
-    }
-
     updateStatus(message: string, type: string = 'info') {
         const statusEl = document.getElementById('status');
         const messageEl = document.getElementById('status-message');
@@ -426,17 +256,6 @@ class ProfilePage {
 
         statusEl.className = `mb-6 p-4 rounded-lg shadow-sm ${colors[type] || colors.info}`;
         messageEl.textContent = message;
-    }
-
-    escapeHtml(text: string): string {
-        const map: { [key: string]: string } = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, m => map[m]);
     }
 }
 
